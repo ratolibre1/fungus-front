@@ -1,0 +1,119 @@
+.sales-page-container {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - 60px);
+  width: 100%;
+}
+
+.sales-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.diamond-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.5;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .diamond-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+.diamond-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #099347;
+  font-size: 30px;
+}
+
+.diamond-point {
+  visibility: hidden;
+}
+
+.diamond-grid>.diamond-point:nth-child(60n+2),
+.diamond-grid>.diamond-point:nth-child(60n+4),
+.diamond-grid>.diamond-point:nth-child(60n+6),
+.diamond-grid>.diamond-point:nth-child(60n+8),
+.diamond-grid>.diamond-point:nth-child(60n+10),
+.diamond-grid>.diamond-point:nth-child(60n+12),
+.diamond-grid>.diamond-point:nth-child(60n+14),
+.diamond-grid>.diamond-point:nth-child(60n+16),
+.diamond-grid>.diamond-point:nth-child(60n+18),
+.diamond-grid>.diamond-point:nth-child(60n+20),
+.diamond-grid>.diamond-point:nth-child(60n+22),
+.diamond-grid>.diamond-point:nth-child(60n+24),
+.diamond-grid>.diamond-point:nth-child(60n+26),
+.diamond-grid>.diamond-point:nth-child(60n+28),
+.diamond-grid>.diamond-point:nth-child(60n+30) {
+  visibility: visible;
+}
+
+.diamond-grid>.diamond-point:nth-child(60n+31),
+.diamond-grid>.diamond-point:nth-child(60n+33),
+.diamond-grid>.diamond-point:nth-child(60n+35),
+.diamond-grid>.diamond-point:nth-child(60n+37),
+.diamond-grid>.diamond-point:nth-child(60n+39),
+.diamond-grid>.diamond-point:nth-child(60n+41),
+.diamond-grid>.diamond-point:nth-child(60n+43),
+.diamond-grid>.diamond-point:nth-child(60n+45),
+.diamond-grid>.diamond-point:nth-child(60n+47),
+.diamond-grid>.diamond-point:nth-child(60n+49),
+.diamond-grid>.diamond-point:nth-child(60n+51),
+.diamond-grid>.diamond-point:nth-child(60n+53),
+.diamond-grid>.diamond-point:nth-child(60n+55),
+.diamond-grid>.diamond-point:nth-child(60n+57),
+.diamond-grid>.diamond-point:nth-child(60n+59) {
+  visibility: visible;
+}
+
+.diamond-point:nth-child(3n+1) img {
+  transform: rotate(-45deg);
+}
+
+.diamond-point:nth-child(3n+2) img {
+  transform: rotate(15deg);
+}
+
+.diamond-point:nth-child(3n+3) img {
+  transform: rotate(-75deg);
+}
+
+.diamond-point:nth-child(5n) img {
+  opacity: 0.7;
+}
+
+.diamond-point:nth-child(4n) img {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.diamond-point:nth-child(7n) img {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.diamond-point:nth-child(11n) {
+  color: #0cbb5a;
+}
+
+.diamond-point:nth-child(13n) {
+  color: #077435;
+}

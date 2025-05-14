@@ -1,0 +1,101 @@
+/* Estilos para el fondo de la página de proveedores */
+.suppliers-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.supplier-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.35;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .supplier-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+.supplier-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E67E22;
+  font-size: 30px;
+}
+
+/* Ocultar todos los elementos por defecto */
+.supplier-point {
+  visibility: hidden;
+}
+
+/* Patrón en grupos para los proveedores */
+.supplier-grid>.supplier-point:nth-child(120n+1),
+.supplier-grid>.supplier-point:nth-child(120n+2),
+.supplier-grid>.supplier-point:nth-child(120n+3),
+.supplier-grid>.supplier-point:nth-child(120n+31),
+.supplier-grid>.supplier-point:nth-child(120n+32),
+.supplier-grid>.supplier-point:nth-child(120n+33),
+.supplier-grid>.supplier-point:nth-child(120n+61),
+.supplier-grid>.supplier-point:nth-child(120n+62),
+.supplier-grid>.supplier-point:nth-child(120n+63),
+.supplier-grid>.supplier-point:nth-child(120n+91),
+.supplier-grid>.supplier-point:nth-child(120n+92),
+.supplier-grid>.supplier-point:nth-child(120n+93) {
+  visibility: visible;
+}
+
+.supplier-point:nth-child(3n+1) img {
+  transform: rotate(0deg);
+}
+
+.supplier-point:nth-child(3n+2) img {
+  transform: rotate(90deg);
+}
+
+.supplier-point:nth-child(3n+3) img {
+  transform: rotate(180deg);
+}
+
+.supplier-point:nth-child(5n) img {
+  opacity: 0.7;
+}
+
+.supplier-point:nth-child(4n) img {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.supplier-point:nth-child(7n) img {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.supplier-point:nth-child(11n) {
+  color: #F39C12;
+}
+
+.supplier-point:nth-child(13n) {
+  color: #D35400;
+}
+
+.suppliers-page-container {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 2rem 0 2rem 0;
+}

@@ -1,0 +1,99 @@
+/* Estilos para el fondo de la página de compras */
+.purchases-page-container {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - 60px);
+  width: 100%;
+}
+
+.purchases-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.purchase-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.35;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .purchase-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+.purchase-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #D35400;
+  font-size: 30px;
+}
+
+/* Ocultar todos los elementos por defecto */
+.purchase-point {
+  visibility: hidden;
+}
+
+/* Patrón en cuadrícula para las compras */
+.purchase-grid>.purchase-point:nth-child(90n+1),
+.purchase-grid>.purchase-point:nth-child(90n+10),
+.purchase-grid>.purchase-point:nth-child(90n+19),
+.purchase-grid>.purchase-point:nth-child(90n+28),
+.purchase-grid>.purchase-point:nth-child(90n+37),
+.purchase-grid>.purchase-point:nth-child(90n+46),
+.purchase-grid>.purchase-point:nth-child(90n+55),
+.purchase-grid>.purchase-point:nth-child(90n+64),
+.purchase-grid>.purchase-point:nth-child(90n+73),
+.purchase-grid>.purchase-point:nth-child(90n+82) {
+  visibility: visible;
+}
+
+.purchase-point:nth-child(3n+1) img {
+  transform: rotate(-15deg);
+}
+
+.purchase-point:nth-child(3n+2) img {
+  transform: rotate(15deg);
+}
+
+.purchase-point:nth-child(3n+3) img {
+  transform: rotate(0deg);
+}
+
+.purchase-point:nth-child(5n) img {
+  opacity: 0.8;
+}
+
+.purchase-point:nth-child(4n) img {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.purchase-point:nth-child(7n) img {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.purchase-point:nth-child(11n) {
+  color: #E67E22;
+}
+
+.purchase-point:nth-child(13n) {
+  color: #A04000;
+}

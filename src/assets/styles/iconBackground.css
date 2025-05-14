@@ -1,0 +1,112 @@
+/* Estilos base para el fondo de iconos */
+.icon-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Estilos para el grid de iconos */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.5;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .icon-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+/* Punto individual en el grid */
+.icon-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* Ocultar todos los elementos por defecto */
+.icon-point {
+  visibility: hidden;
+}
+
+/* Mostrar solo los elementos en posiciones pares en filas pares (comenzando desde 0) */
+.icon-grid>.icon-point:nth-child(60n+2),
+.icon-grid>.icon-point:nth-child(60n+4),
+.icon-grid>.icon-point:nth-child(60n+6),
+.icon-grid>.icon-point:nth-child(60n+8),
+.icon-grid>.icon-point:nth-child(60n+10),
+.icon-grid>.icon-point:nth-child(60n+12),
+.icon-grid>.icon-point:nth-child(60n+14),
+.icon-grid>.icon-point:nth-child(60n+16),
+.icon-grid>.icon-point:nth-child(60n+18),
+.icon-grid>.icon-point:nth-child(60n+20),
+.icon-grid>.icon-point:nth-child(60n+22),
+.icon-grid>.icon-point:nth-child(60n+24),
+.icon-grid>.icon-point:nth-child(60n+26),
+.icon-grid>.icon-point:nth-child(60n+28),
+.icon-grid>.icon-point:nth-child(60n+30) {
+  visibility: visible;
+}
+
+/* Mostrar solo los elementos en posiciones impares en filas impares */
+.icon-grid>.icon-point:nth-child(60n+31),
+.icon-grid>.icon-point:nth-child(60n+33),
+.icon-grid>.icon-point:nth-child(60n+35),
+.icon-grid>.icon-point:nth-child(60n+37),
+.icon-grid>.icon-point:nth-child(60n+39),
+.icon-grid>.icon-point:nth-child(60n+41),
+.icon-grid>.icon-point:nth-child(60n+43),
+.icon-grid>.icon-point:nth-child(60n+45),
+.icon-grid>.icon-point:nth-child(60n+47),
+.icon-grid>.icon-point:nth-child(60n+49),
+.icon-grid>.icon-point:nth-child(60n+51),
+.icon-grid>.icon-point:nth-child(60n+53),
+.icon-grid>.icon-point:nth-child(60n+55),
+.icon-grid>.icon-point:nth-child(60n+57),
+.icon-grid>.icon-point:nth-child(60n+59) {
+  visibility: visible;
+}
+
+/* Estilos para rotaciones */
+.icon-point:nth-child(3n+1) img {
+  transform: rotate(-45deg);
+}
+
+.icon-point:nth-child(3n+2) img {
+  transform: rotate(15deg);
+}
+
+.icon-point:nth-child(3n+3) img {
+  transform: rotate(-75deg);
+}
+
+/* Variación de opacidad */
+.icon-point:nth-child(5n) img {
+  opacity: 0.7;
+}
+
+/* Variación de tamaño */
+.icon-point:nth-child(4n) img {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.icon-point:nth-child(7n) img {
+  width: 18px !important;
+  height: 18px !important;
+}

@@ -1,0 +1,100 @@
+/* Estilos para el fondo de la página de insumos */
+.supplies-page-container {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 2rem 0 2rem 0;
+  width: 100%;
+}
+
+.supplies-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.supply-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.35;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .supply-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+.supply-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3498DB;
+  font-size: 30px;
+}
+
+/* Ocultar todos los elementos por defecto */
+.supply-point {
+  visibility: hidden;
+}
+
+/* Patrón circular para los insumos */
+.supply-grid>.supply-point:nth-child(15n+3),
+.supply-grid>.supply-point:nth-child(15n+7),
+.supply-grid>.supply-point:nth-child(15n+11),
+.supply-grid>.supply-point:nth-child(45n+22),
+.supply-grid>.supply-point:nth-child(45n+25),
+.supply-grid>.supply-point:nth-child(75n+33),
+.supply-grid>.supply-point:nth-child(75n+37),
+.supply-grid>.supply-point:nth-child(75n+40),
+.supply-grid>.supply-point:nth-child(45n+41),
+.supply-grid>.supply-point:nth-child(75n+55) {
+  visibility: visible;
+}
+
+.supply-point:nth-child(3n+1) img {
+  transform: rotate(-30deg);
+}
+
+.supply-point:nth-child(3n+2) img {
+  transform: rotate(30deg);
+}
+
+.supply-point:nth-child(3n+3) img {
+  transform: rotate(0deg);
+}
+
+.supply-point:nth-child(5n) img {
+  opacity: 0.8;
+}
+
+.supply-point:nth-child(4n) img {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.supply-point:nth-child(7n) img {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.supply-point:nth-child(11n) {
+  color: #5DADE2;
+}
+
+.supply-point:nth-child(13n) {
+  color: #2874A6;
+}

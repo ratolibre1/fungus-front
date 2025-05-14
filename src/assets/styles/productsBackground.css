@@ -1,0 +1,95 @@
+/* Estilos para el fondo de la página de productos */
+.products-page-container {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 2rem 0 2rem 0;
+  width: 100%;
+}
+
+.products-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  grid-template-rows: repeat(30, 1fr);
+  width: 300%;
+  height: 300%;
+  transform: none;
+  opacity: 0.4;
+  padding: 20px;
+}
+
+/* Versión móvil - mayor densidad de iconos */
+@media (max-width: 768px) {
+  .product-grid {
+    width: 500%;
+    height: 500%;
+  }
+}
+
+.product-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #642B73;
+  font-size: 28px;
+}
+
+/* Ocultar todos los elementos por defecto */
+.product-point {
+  visibility: hidden;
+}
+
+/* Aquí cambiamos el patrón para la página de productos
+   En vez de un patrón escalonado, haremos un patrón en diagonal */
+.product-grid>.product-point:nth-child(31n+1),
+.product-grid>.product-point:nth-child(31n+2),
+.product-grid>.product-point:nth-child(31n+3),
+.product-grid>.product-point:nth-child(62n+4),
+.product-grid>.product-point:nth-child(62n+5),
+.product-grid>.product-point:nth-child(62n+6),
+.product-grid>.product-point:nth-child(93n+7),
+.product-grid>.product-point:nth-child(93n+8),
+.product-grid>.product-point:nth-child(93n+9) {
+  visibility: visible;
+}
+
+/* Rotaciones diferentes para la página de productos */
+.product-point:nth-child(3n+1) img {
+  transform: rotate(0deg);
+}
+
+.product-point:nth-child(3n+2) img {
+  transform: rotate(45deg);
+}
+
+.product-point:nth-child(3n+3) img {
+  transform: rotate(90deg);
+}
+
+/* Variación de opacidad */
+.product-point:nth-child(5n) img {
+  opacity: 0.6;
+}
+
+/* Variación de tamaño */
+.product-point:nth-child(4n) img {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.product-point:nth-child(7n) img {
+  width: 20px !important;
+  height: 20px !important;
+}

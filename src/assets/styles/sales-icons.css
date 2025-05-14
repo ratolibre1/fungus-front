@@ -1,0 +1,14 @@
+/* Definiciones específicas para los iconos utilizados en SalesBackground */
+.bi-cash-coin::before {
+  content: "\f58b";
+}
+
+.bi-cash::before {
+  content: "\f58a";
+}
+
+.bi-coin::before {
+  content: "\f590";
+}
+
+/* Agregar más definiciones aquí si se necesitan más iconos */

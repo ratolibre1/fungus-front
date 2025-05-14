@@ -1,0 +1,351 @@
+@import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Kanchenjunga&family=Hind:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Colores principales */
+  --fungus-primary: #099347;
+  --fungus-primary-light: #10B258;
+  --fungus-primary-lighter: #4DC980;
+  --fungus-primary-lightest: #C5E8D4;
+  --fungus-primary-dark: #077636;
+  --fungus-primary-darker: #055C2A;
+
+  /* Colores complementarios */
+  --fungus-accent: #930947;
+  --fungus-accent-light: #B5105E;
+
+  /* Tonos neutros */
+  --fungus-gray-100: #F4F9F6;
+  --fungus-gray-200: #E5EEE8;
+  --fungus-gray-300: #CFDDD3;
+  --fungus-gray-400: #A9BEB0;
+  --fungus-gray-500: #7C9284;
+  --fungus-gray-600: #5E7465;
+  --fungus-gray-700: #43544A;
+  --fungus-gray-800: #2D3830;
+  --fungus-gray-900: #1A211C;
+
+  /* Colores de estado */
+  --fungus-success: #099347;
+  --fungus-info: #096893;
+  --fungus-warning: #93750B;
+  --fungus-danger: #931E0E;
+
+  /* Fuentes */
+  --font-appname: 'Kaushan Script', cursive;
+  --font-heading: 'Kanchenjunga', cursive;
+  --font-body: 'Hind', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  min-height: 100vh;
+  background-color: var(--fungus-gray-100);
+  color: var(--fungus-gray-800);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+/* Colores de texto */
+.text-fungus-primary {
+  color: var(--fungus-primary);
+}
+
+.text-fungus-primary-light {
+  color: var(--fungus-primary-light);
+}
+
+.text-fungus-primary-dark {
+  color: var(--fungus-primary-dark);
+}
+
+.text-fungus-accent {
+  color: var(--fungus-accent);
+}
+
+.text-fungus-muted {
+  color: var(--fungus-gray-600);
+}
+
+/* Colores de fondo */
+.bg-fungus-primary {
+  background-color: var(--fungus-primary);
+}
+
+.bg-fungus-primary-light {
+  background-color: var(--fungus-primary-light);
+}
+
+.bg-fungus-primary-lighter {
+  background-color: var(--fungus-primary-lighter);
+}
+
+.bg-fungus-primary-lightest {
+  background-color: var(--fungus-primary-lightest);
+}
+
+.bg-fungus-primary-dark {
+  background-color: var(--fungus-primary-dark);
+}
+
+.bg-fungus-primary-darker {
+  background-color: var(--fungus-primary-darker);
+}
+
+.bg-fungus-accent {
+  background-color: var(--fungus-accent);
+}
+
+.bg-fungus-accent-light {
+  background-color: var(--fungus-accent-light);
+}
+
+.bg-fungus-gray-100 {
+  background-color: var(--fungus-gray-100);
+}
+
+.bg-fungus-gray-200 {
+  background-color: var(--fungus-gray-200);
+}
+
+/* Bordes */
+.border-fungus-primary {
+  border-color: var(--fungus-primary);
+}
+
+.border-fungus-primary-light {
+  border-color: var(--fungus-primary-light);
+}
+
+.border-fungus-gray-200 {
+  border-color: var(--fungus-gray-200);
+}
+
+.border-fungus-gray-300 {
+  border-color: var(--fungus-gray-300);
+}
+
+/* Botones */
+.btn-fungus {
+  background-color: var(--fungus-primary);
+  border-color: var(--fungus-primary);
+  color: white;
+  font-family: var(--font-body);
+}
+
+.btn-fungus:hover {
+  background-color: var(--fungus-primary-dark);
+  border-color: var(--fungus-primary-dark);
+  color: white;
+}
+
+.btn-fungus:active,
+.btn-fungus:focus {
+  background-color: var(--fungus-primary-darker);
+  border-color: var(--fungus-primary-darker);
+  color: white;
+}
+
+.btn-fungus-light {
+  background-color: var(--fungus-primary-light);
+  border-color: var(--fungus-primary-light);
+  color: white;
+}
+
+.btn-fungus-outline {
+  background-color: transparent;
+  border-color: var(--fungus-primary);
+  color: var(--fungus-primary);
+}
+
+.btn-fungus-outline:hover {
+  background-color: var(--fungus-primary-lightest);
+  color: var(--fungus-primary-dark);
+}
+
+/* Enlaces */
+a.fungus-link {
+  color: var(--fungus-primary);
+  text-decoration: none;
+}
+
+a.fungus-link:hover {
+  color: var(--fungus-primary-dark);
+  text-decoration: underline;
+}
+
+/* Clases de utilidad */
+.font-appname {
+  font-family: var(--font-appname);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.shadow-fungus {
+  box-shadow: 0 0.125rem 0.25rem rgba(27, 34, 27, 0.075);
+}
+
+/* Tarjetas personalizadas */
+.card-fungus {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(27, 34, 27, 0.075);
+  background-color: white;
+}
+
+.card-fungus .card-header {
+  background-color: var(--fungus-primary-lightest);
+  border-bottom: none;
+  color: var(--fungus-primary-darker);
+}
+
+/* Badges */
+.badge-fungus-coming-soon {
+  background-color: var(--fungus-warning);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25rem;
+}
+
+/* Estilos de tablas */
+.table {
+  margin-bottom: 0rem;
+  color: var(--fungus-gray-800);
+  vertical-align: middle;
+}
+
+/* Cabecera de tabla */
+.table thead th {
+  background-color: var(--fungus-primary-darker);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem;
+  vertical-align: middle;
+  position: relative;
+}
+
+/* Agregar un hover más visible a encabezados con ordenamiento */
+.table thead th[style*="cursor: pointer"]:hover {
+  background-color: var(--fungus-primary-dark);
+}
+
+/* Filas alternadas */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--fungus-gray-100);
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: white;
+}
+
+/* Hover en filas */
+.table-hover tbody tr:hover {
+  background-color: var(--fungus-gray-200);
+}
+
+/* Celdas */
+.table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+
+/* Tablas responsivas */
+.table-responsive {
+  border-radius: 0.375rem;
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  display: block;
+}
+
+/* Íconos de ordenamiento en cabeceras */
+.table th i.bi-arrow-up,
+.table th i.bi-arrow-down {
+  color: white;
+}
+
+/* Si se usa dentro de cards */
+.card .table {
+  margin-bottom: 0;
+}
+
+.card .table td:first-child,
+.card .table th:first-child {
+  padding-left: 1.25rem;
+}
+
+.card .table td:last-child,
+.card .table th:last-child {
+  padding-right: 1.25rem;
+}
+
+/* Estilos para las botoneras de incremento/decremento de cantidades */
+.quantity-control {
+  display: inline-flex;
+  align-items: center;
+}
+
+.quantity-control button {
+  background-color: #ffffff;
+  border-color: var(--fungus-primary);
+  color: var(--fungus-primary);
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-control button:hover:not(:disabled) {
+  background-color: var(--fungus-primary-lightest);
+}
+
+.quantity-control button:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.quantity-control .quantity-value {
+  display: inline-block;
+  background-color: #ffffff;
+  border: 1px solid var(--fungus-primary);
+  border-left: none;
+  border-right: none;
+  color: #212529;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Estilos para los placeholders */
+::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--fungus-gray-400) !important;
+  opacity: 1;
+  /* Firefox */
+}
+
+:-ms-input-placeholder {
+  /* Internet Explorer 10-11 */
+  color: var(--fungus-gray-400) !important;
+}
+
+::-ms-input-placeholder {
+  /* Microsoft Edge */
+  color: var(--fungus-gray-400) !important;
+}

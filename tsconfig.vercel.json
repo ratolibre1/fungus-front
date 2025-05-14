@@ -10,7 +10,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "strict": false,
-    "suppressImplicitAnyIndexErrors": true,
     "noFallthroughCasesInSwitch": false,
     "ignoreDeprecations": "5.0"
   },

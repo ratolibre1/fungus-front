@@ -13,7 +13,16 @@
     "noFallthroughCasesInSwitch": false,
     "ignoreDeprecations": "5.0",
     "jsx": "react-jsx",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "target": "ES2020",
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
   "include": [
     "src"

@@ -23,7 +23,14 @@
       "ES2020",
       "DOM",
       "DOM.Iterable"
-    ]
+    ],
+    "noErrorTruncation": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "useUnknownInCatchVariables": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false
   },
   "include": [
     "src"

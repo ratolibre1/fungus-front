@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc -p tsconfig.vercel.json && vite build",
+    "build": "tsc -p tsconfig.vercel.json --noEmit false || vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

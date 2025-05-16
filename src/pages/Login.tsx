@@ -11,6 +11,7 @@ interface LoginResponse {
     role: string;
   };
   token: string;
+  passwordChangeRequired?: boolean;
 }
 
 export default function Login() {
@@ -44,8 +45,13 @@ export default function Login() {
       localStorage.setItem('fungus_token', data.token);
       localStorage.setItem('fungus_user', JSON.stringify(data.user));
 
-      // Redirigir al panel
-      navigate('/panel');
+      // Si se requiere cambio de contraseña, redirigir a esa página
+      if (data.passwordChangeRequired) {
+        navigate('/cambiar-contrasena-obligatorio');
+      } else {
+        // Redirigir al panel
+        navigate('/panel');
+      }
 
     } catch (err) {
       console.error('Error durante login:', err);
@@ -107,9 +113,6 @@ export default function Login() {
                       <label htmlFor="password" className="form-label mb-0">
                         Contraseña
                       </label>
-                      <a href="#" style={{ color: '#099347', textDecoration: 'none' }} className="small">
-                        ¿Olvidaste tu contraseña?
-                      </a>
                     </div>
                     <input
                       id="password"
@@ -142,13 +145,6 @@ export default function Login() {
                     </button>
                   </div>
                 </form>
-
-                <p className="mt-4 text-center small" style={{ color: '#6c757d' }}>
-                  ¿No tienes una cuenta?{' '}
-                  <a href="#" style={{ color: '#099347', textDecoration: 'none' }}>
-                    Regístrate ahora
-                  </a>
-                </p>
               </div>
             </div>
           </div>

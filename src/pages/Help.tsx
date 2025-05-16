@@ -520,7 +520,7 @@ export default function Help() {
                   </ul>
                 </div>
 
-                <div>
+                <div className="mb-4">
                   <h5><i className="bi bi-shield-check me-2" style={{ color: '#099347' }}></i>Validación de Datos</h5>
                   <p>El sistema valida automáticamente:</p>
                   <ul>
@@ -530,6 +530,30 @@ export default function Help() {
                     <li>Campos requeridos en todos los formularios</li>
                   </ul>
                 </div>
+
+                <div className="mb-4">
+                  <h5><i className="bi bi-printer me-2" style={{ color: '#099347' }}></i>Etiquetas de Impresión</h5>
+                  <p>Para imprimir etiquetas de productos:</p>
+                  <ul>
+                    <li>Accede a la sección de <strong>Productos</strong> o <strong>Consumibles</strong>.</li>
+                    <li>Busca el botón de <strong>Imprimir Etiqueta</strong> junto a cada ítem.</li>
+                    <li>Selecciona la cantidad de etiquetas que necesitas.</li>
+                    <li>El sistema generará un PDF optimizado para impresoras de etiquetas estándar.</li>
+                    <li>Puedes imprimir directamente o guardar el PDF para uso posterior.</li>
+                  </ul>
+                </div>
+
+                <div className="mb-4">
+                  <h5><i className="bi bi-calendar-check me-2" style={{ color: '#099347' }}></i>Buenas Prácticas</h5>
+                  <p>Para aprovechar al máximo el sistema:</p>
+                  <ul>
+                    <li>Mantén actualizada la información de clientes y proveedores.</li>
+                    <li>Revisa regularmente el stock de productos para evitar faltantes.</li>
+                    <li>Actualiza los precios cuando sea necesario para mantener márgenes adecuados.</li>
+                    <li>Usa las cotizaciones para ofrecer precios formales a tus clientes antes de confirmar ventas.</li>
+                    <li>Exporta regularmente informes de ventas para análisis financieros.</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -537,4 +561,4 @@ export default function Help() {
       </div>
     </Layout>
   );
-} 
+}

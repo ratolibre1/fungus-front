@@ -13,8 +13,11 @@ import QuotationDetail from './pages/QuotationDetail'
 import Purchases from './pages/Purchases'
 import Sales from './pages/SalesPage'
 import Help from './pages/Help'
+import Logs from './pages/Logs'
 import NotFound from './pages/NotFound'
 import SessionExpired from './pages/SessionExpired'
+import ForcePasswordChange from './pages/ForcePasswordChange'
+import RoleBasedRoute from './components/common/RoleBasedRoute'
 
 // Componente para rutas protegidas que requieren autenticación
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -52,6 +55,7 @@ function App() {
       <Routes>
         <Route path="/iniciar-sesion" element={<Login />} />
         <Route path="/sesion-expirada" element={<SessionExpired />} />
+        <Route path="/cambiar-contrasena-obligatorio" element={<ForcePasswordChange />} />
         <Route
           path="/panel"
           element={
@@ -145,6 +149,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Help />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/registros"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <Logs />
+              </RoleBasedRoute>
             </ProtectedRoute>
           }
         />

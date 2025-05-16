@@ -58,20 +58,14 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
       : { padding: '0.5rem 0.75rem' };
   };
 
+  // Comprobar si el usuario es administrador
+  const isAdmin = user?.role === 'admin';
+  const isBoss = user?.role === 'boss';
+  const isUser = user?.role === 'user';
+
   return (
     <div className={sidebarClasses} style={{ minHeight: '100vh', backgroundColor: '#055C2A', zIndex: 1030 }}>
       <div className="position-sticky pt-3">
-        <div className="d-flex justify-content-between align-items-center px-3 mb-4">
-          <h1 className="h2 text-white font-appname mb-0">Fungus Mycelium</h1>
-          {/* Botón de cerrar solo visible en móvil */}
-          <button
-            type="button"
-            className="btn-close btn-close-white d-md-none"
-            onClick={onClose}
-            aria-label="Cerrar"
-          ></button>
-        </div>
-        <hr className="border-white opacity-25" />
         <div className="px-3 py-4 text-white">
           <div className="text-center mb-3">
             <div className="mb-3 d-flex justify-content-center">
@@ -84,7 +78,17 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
             </div>
             <h5>{user?.name || 'Usuario'}</h5>
             <p className="small opacity-75">{user?.email}</p>
+            {isAdmin && (
+              <span className="badge bg-danger text-dark">Administrador</span>
+            )}
+            {isBoss && (
+              <span className="badge bg-warning text-dark">Jefe</span>
+            )}
+            {isUser && (
+              <span className="badge bg-success text-dark">Usuario</span>
+            )}
           </div>
+          <hr className="border-white opacity-25" />
 
           {/* Menú de navegación */}
           <nav className="mt-4">
@@ -209,6 +213,24 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
                   Compras
                 </a>
               </li>
+              {/* Opción de logs solo visible para administradores */}
+              {isAdmin && (
+                <li className="nav-item">
+                  <a
+                    className={getLinkClasses('/registros')}
+                    style={getItemStyle('/registros')}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/registros');
+                      if (onClose) onClose();
+                    }}
+                  >
+                    <i className="bi bi-journal-text me-2"></i>
+                    Registros
+                  </a>
+                </li>
+              )}
               {/* Añadir más opciones de menú aquí */}
             </ul>
           </nav>

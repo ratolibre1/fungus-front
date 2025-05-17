@@ -41,9 +41,15 @@ export default function Purchases() {
 
     try {
       const response = await getPurchases();
-      setPurchases(response.data);
+      // Verificar si la respuesta fue exitosa y tiene datos
+      if (response.success && response.data) {
+        setPurchases(response.data);
+      } else {
+        setPurchases([]);
+      }
     } catch (err) {
       setError((err as Error).message);
+      setPurchases([]);
     } finally {
       setLoading(false);
     }
@@ -53,9 +59,14 @@ export default function Purchases() {
   const loadSuppliers = async () => {
     try {
       const response = await getSuppliers();
-      setSuppliers(response.data);
+      if (response.success && response.data) {
+        setSuppliers(response.data);
+      } else {
+        setSuppliers([]);
+      }
     } catch (err) {
       console.error('Error cargando proveedores:', err);
+      setSuppliers([]);
     }
   };
 
@@ -88,9 +99,15 @@ export default function Purchases() {
 
     try {
       const response = await searchPurchases(params);
-      setPurchases(response.data);
+      // Verificar si la respuesta fue exitosa y tiene datos
+      if (response.success && response.data) {
+        setPurchases(response.data);
+      } else {
+        setPurchases([]);
+      }
     } catch (err) {
       setError((err as Error).message);
+      setPurchases([]);
     } finally {
       setIsSearching(false);
     }
@@ -171,15 +188,16 @@ export default function Purchases() {
 
   // Función para obtener datos ordenados
   const getSortedPurchases = () => {
-    if (!purchases || !Array.isArray(purchases)) {
+    if (!purchases || !Array.isArray(purchases) || purchases.length === 0) {
       return [];
     }
 
     return [...purchases].sort((a, b) => {
       if (sortField === 'supplier') {
         // Ordenar por nombre de proveedor
-        const aValue = a.supplier.name;
-        const bValue = b.supplier.name;
+        const aValue = a.supplier && typeof a.supplier === 'object' ? a.supplier.name : '';
+        const bValue = b.supplier && typeof b.supplier === 'object' ? b.supplier.name : '';
+
         if (aValue < bValue) {
           return sortDirection === 'asc' ? -1 : 1;
         }
@@ -241,14 +259,20 @@ export default function Purchases() {
 
   // Formatear fecha
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-CL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    if (!dateString) return '-';
+
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('es-CL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch {
+      return '-';
+    }
   };
 
   return (
@@ -267,80 +291,83 @@ export default function Purchases() {
           </button>
         </div>
 
-        {/* Barra de búsqueda */}
-        <div className="card mb-4 border-0 shadow-sm">
-          <div className="card-body">
-            <form onSubmit={handleSearch} className="row g-3">
-              <div className="col-md-4">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Buscar por N° documento o descripción..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <button
-                    className="btn btn-outline-secondary"
-                    type="submit"
-                    disabled={isSearching}
-                  >
-                    {isSearching ? (
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    ) : (
-                      <i className="bi bi-search"></i>
-                    )}
-                  </button>
-                  {(searchTerm || filterStatus || filterSupplier) && (
-                    <button
-                      className="btn btn-outline-secondary"
-                      type="button"
-                      onClick={resetSearch}
-                    >
-                      <i className="bi bi-x-lg"></i>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="col-md-4">
-                <select
-                  className="form-select"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="">Todos los estados</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="completed">Completada</option>
-                  <option value="canceled">Cancelada</option>
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <select
-                  className="form-select"
-                  value={filterSupplier}
-                  onChange={(e) => setFilterSupplier(e.target.value)}
-                >
-                  <option value="">Todos los proveedores</option>
-                  {suppliers.map(supplier => (
-                    <option key={supplier._id} value={supplier._id}>
-                      {supplier.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        {/* Lista de compras */}
+        {/* Mensajes de error */}
         {error && (
           <div className="alert text-white" style={{ backgroundColor: '#dc3545' }} role="alert">
             {error}
           </div>
         )}
 
+        {/* Barra de búsqueda - Solo mostrar si hay compras */}
+        {!loading && purchases && purchases.length > 0 && (
+          <div className="card mb-4 border-0 shadow-sm">
+            <div className="card-body">
+              <form onSubmit={handleSearch} className="row g-3">
+                <div className="col-md-4">
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Buscar por N° documento o descripción..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="submit"
+                      disabled={isSearching}
+                    >
+                      {isSearching ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        <i className="bi bi-search"></i>
+                      )}
+                    </button>
+                    {(searchTerm || filterStatus || filterSupplier) && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={resetSearch}
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-md-4">
+                  <select
+                    className="form-select"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="">Todos los estados</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="completed">Completada</option>
+                    <option value="canceled">Cancelada</option>
+                  </select>
+                </div>
+
+                <div className="col-md-4">
+                  <select
+                    className="form-select"
+                    value={filterSupplier}
+                    onChange={(e) => setFilterSupplier(e.target.value)}
+                  >
+                    <option value="">Todos los proveedores</option>
+                    {suppliers.map(supplier => (
+                      <option key={supplier._id} value={supplier._id}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Lista de compras */}
         {loading && !error && !isSearching ? (
           <div className="d-flex justify-content-center my-5">
             <div className="spinner-border" style={{ color: '#099347' }} role="status">
@@ -390,9 +417,17 @@ export default function Purchases() {
                     {getSortedPurchases().map(purchase => (
                       <tr key={purchase._id}>
                         <td>{formatDate(purchase.createdAt)}</td>
-                        <td>{purchase.supplier.name}</td>
+                        <td>
+                          {purchase.supplier && typeof purchase.supplier === 'object' && purchase.supplier.name
+                            ? purchase.supplier.name
+                            : 'Proveedor no disponible'}
+                        </td>
                         <td>{purchase.documentNumber || '-'}</td>
-                        <td>${purchase.totalAmount.toLocaleString('es-CL')}</td>
+                        <td>
+                          {purchase.totalAmount !== undefined
+                            ? `$${purchase.totalAmount.toLocaleString('es-CL')}`
+                            : '$0'}
+                        </td>
                         <td>
                           <span className={`badge ${getStatusClass(purchase.status)}`}>
                             {getStatusName(purchase.status)}

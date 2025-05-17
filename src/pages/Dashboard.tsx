@@ -1,8 +1,28 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  // Cargar usuario desde localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('fungus_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Verificar si el usuario es administrador
+  const isAdmin = user?.role === 'admin';
 
   const modules = [
     {
@@ -43,7 +63,7 @@ export default function Dashboard() {
       description: 'Generación y seguimiento de cotizaciones',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/cotizaciones',
-      enabled: true
+      enabled: isAdmin ? true : false
     },
     {
       title: 'Ventas',
@@ -51,7 +71,7 @@ export default function Dashboard() {
       description: 'Registro y análisis de ventas',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/ventas',
-      enabled: true
+      enabled: isAdmin ? true : false
     },
     {
       title: 'Compras',
@@ -59,7 +79,7 @@ export default function Dashboard() {
       description: 'Registro de compras a proveedores',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/compras',
-      enabled: true
+      enabled: isAdmin ? true : false
     }
   ];
 
@@ -91,7 +111,10 @@ export default function Dashboard() {
                 <div className="d-grid">
                   <button
                     className="btn position-relative"
-                    style={{ backgroundColor: '#099347', color: 'white' }}
+                    style={{
+                      backgroundColor: module.enabled ? '#099347' : '#6c757d',
+                      color: 'white'
+                    }}
                     disabled={!module.enabled}
                     onClick={() => module.path && navigateToModule(module.path)}
                   >
@@ -100,7 +123,7 @@ export default function Dashboard() {
                       <span
                         className="position-absolute translate-middle badge rounded-pill"
                         style={{
-                          backgroundColor: '#C6AB2E',
+                          backgroundColor: '#FFC107',
                           color: 'black',
                           right: '-30px',
                           fontSize: '0.7rem',

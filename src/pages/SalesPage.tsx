@@ -246,7 +246,7 @@ const SalesPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <div className="alert text-white" style={{ backgroundColor: '#dc3545' }} role="alert">
             {error}
             <button
               type="button"
@@ -256,157 +256,158 @@ const SalesPage: React.FC = () => {
           </div>
         )}
 
-        <div className="mb-4">
-          <form onSubmit={handleSearch} className="row g-3">
-            <div className="col-md-4 mb-2 mb-md-0">
-              <div className="input-group">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Buscar por N° correlativo o cliente..."
-                  name="term"
-                  value={searchParams.term}
-                  onChange={handleSearchChange}
-                />
-                <button
-                  className="btn btn-outline-secondary"
-                  type="submit"
-                  disabled={isSearching}
-                >
-                  {isSearching ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : (
-                    <i className="bi bi-search"></i>
-                  )}
-                </button>
-                {(searchParams.term || searchParams.clientId || searchParams.startDate || searchParams.endDate) && (
-                  <button
-                    className="btn btn-outline-secondary"
-                    type="button"
-                    onClick={resetFilters}
-                  >
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="col-md-3 mb-2 mb-md-0">
-              <select
-                className="form-select"
-                name="clientId"
-                value={searchParams.clientId}
-                onChange={handleSearchChange}
-              >
-                <option value="">Todos los clientes</option>
-                {clients.map(client => (
-                  <option key={client._id} value={client._id}>
-                    {client.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-2 mb-2 mb-md-0">
-              <input
-                type="date"
-                className="form-control"
-                placeholder="Desde"
-                name="startDate"
-                value={searchParams.startDate}
-                onChange={handleSearchChange}
-              />
-            </div>
-
-            <div className="col-md-2 mb-2 mb-md-0">
-              <input
-                type="date"
-                className="form-control"
-                placeholder="Hasta"
-                name="endDate"
-                value={searchParams.endDate}
-                onChange={handleSearchChange}
-              />
-            </div>
-          </form>
-        </div>
-
-        <div className="card">
-          <div className="card-body">
-            {loading ? (
-              <div className="text-center my-5">
-                <div className="spinner-border" style={{ color: '#099347' }} role="status">
-                  <span className="visually-hidden">Cargando...</span>
+        {/* Filtros - Solo mostrar si hay ventas */}
+        {!loading && filteredSales.length > 0 && (
+          <div className="card mb-4 border-0 shadow-sm">
+            <div className="card-body">
+              <form onSubmit={handleSearch} className="row g-3">
+                <div className="col-md-4 mb-2 mb-md-0">
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Buscar por N° correlativo o cliente..."
+                      name="term"
+                      value={searchParams.term}
+                      onChange={handleSearchChange}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="submit"
+                      disabled={isSearching}
+                    >
+                      {isSearching ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        <i className="bi bi-search"></i>
+                      )}
+                    </button>
+                    {(searchParams.term || searchParams.clientId || searchParams.startDate || searchParams.endDate) && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={resetFilters}
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : filteredSales.length === 0 ? (
-              <div className="alert alert-info">
-                {searchParams.term || searchParams.clientId || searchParams.startDate || searchParams.endDate ?
-                  "No se encontraron ventas que coincidan con los filtros aplicados." :
-                  "No hay ventas registradas."}
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead className="table-success">
-                    <tr>
-                      <th>Correlativo</th>
-                      <th>Documento</th>
-                      <th>Fecha</th>
-                      <th>Cliente</th>
-                      <th>Neto</th>
-                      <th>IVA</th>
-                      <th>Total</th>
-                      <th>Vendedor</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredSales.map(sale => (
-                      <tr key={sale._id}>
-                        <td>{sale.correlative}</td>
-                        <td>
-                          {getDocumentTypeName(sale.documentType)} {sale.documentNumber}
-                        </td>
-                        <td>{formatDate(sale.date)}</td>
-                        <td>{sale.client.name}</td>
-                        <td>{formatCurrency(sale.netAmount)}</td>
-                        <td>{formatCurrency(sale.taxAmount)}</td>
-                        <td>{formatCurrency(sale.totalAmount)}</td>
-                        <td>{sale.seller?.name || '-'}</td>
-                        <td>
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => handleViewSale(sale)}
-                              title="Ver detalles"
-                            >
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-secondary"
-                              onClick={() => handleEditSale(sale)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDeleteSale(sale)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+
+                <div className="col-md-3 mb-2 mb-md-0">
+                  <select
+                    className="form-select"
+                    name="clientId"
+                    value={searchParams.clientId}
+                    onChange={handleSearchChange}
+                  >
+                    <option value="">Todos los clientes</option>
+                    {clients.map(client => (
+                      <option key={client._id} value={client._id}>
+                        {client.name}
+                      </option>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  </select>
+                </div>
+
+                <div className="col-md-2 mb-2 mb-md-0">
+                  <input
+                    type="date"
+                    className="form-control"
+                    placeholder="Desde"
+                    name="startDate"
+                    value={searchParams.startDate}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+
+                <div className="col-md-2 mb-2 mb-md-0">
+                  <input
+                    type="date"
+                    className="form-control"
+                    placeholder="Hasta"
+                    name="endDate"
+                    value={searchParams.endDate}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
+
+        {loading ? (
+          <div className="d-flex justify-content-center my-5">
+            <div className="spinner-border" style={{ color: '#099347' }} role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+        ) : filteredSales.length === 0 ? (
+          <div className="alert alert-info">
+            {searchParams.term || searchParams.clientId || searchParams.startDate || searchParams.endDate ?
+              "No se encontraron ventas que coincidan con los filtros aplicados." :
+              "No hay ventas registradas."}
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table table-hover table-striped">
+              <thead>
+                <tr>
+                  <th>Correlativo</th>
+                  <th>Documento</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Neto</th>
+                  <th>IVA</th>
+                  <th>Total</th>
+                  <th>Vendedor</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSales.map(sale => (
+                  <tr key={sale._id}>
+                    <td>{sale.correlative}</td>
+                    <td>
+                      {getDocumentTypeName(sale.documentType)} {sale.documentNumber}
+                    </td>
+                    <td>{formatDate(sale.date)}</td>
+                    <td>{sale.client.name}</td>
+                    <td>{formatCurrency(sale.netAmount)}</td>
+                    <td>{formatCurrency(sale.taxAmount)}</td>
+                    <td>{formatCurrency(sale.totalAmount)}</td>
+                    <td>{sale.seller?.name || '-'}</td>
+                    <td>
+                      <div className="btn-group">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleViewSale(sale)}
+                          title="Ver detalles"
+                        >
+                          <i className="bi bi-eye"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => handleEditSale(sale)}
+                          title="Editar"
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => handleDeleteSale(sale)}
+                          title="Eliminar"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <SaleModal
           show={showModal}

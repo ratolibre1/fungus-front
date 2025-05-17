@@ -64,6 +64,7 @@ export interface UpdatePurchaseRequest {
 export interface PurchasesResponse {
   success: boolean;
   data: Purchase[];
+  count?: number;
 }
 
 export interface PurchaseResponse {

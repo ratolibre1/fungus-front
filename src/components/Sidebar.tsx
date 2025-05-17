@@ -58,20 +58,14 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
       : { padding: '0.5rem 0.75rem' };
   };
 
+  // Comprobar si el usuario es administrador
+  const isAdmin = user?.role === 'admin';
+  const isBoss = user?.role === 'boss';
+  const isUser = user?.role === 'user';
+
   return (
     <div className={sidebarClasses} style={{ minHeight: '100vh', backgroundColor: '#055C2A', zIndex: 1030 }}>
       <div className="position-sticky pt-3">
-        <div className="d-flex justify-content-between align-items-center px-3 mb-4">
-          <h1 className="h2 text-white font-appname mb-0">Fungus Mycelium</h1>
-          {/* Botón de cerrar solo visible en móvil */}
-          <button
-            type="button"
-            className="btn-close btn-close-white d-md-none"
-            onClick={onClose}
-            aria-label="Cerrar"
-          ></button>
-        </div>
-        <hr className="border-white opacity-25" />
         <div className="px-3 py-4 text-white">
           <div className="text-center mb-3">
             <div className="mb-3 d-flex justify-content-center">
@@ -84,7 +78,17 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
             </div>
             <h5>{user?.name || 'Usuario'}</h5>
             <p className="small opacity-75">{user?.email}</p>
+            {isAdmin && (
+              <span className="badge bg-danger text-dark">Administrador</span>
+            )}
+            {isBoss && (
+              <span className="badge bg-warning text-dark">Jefe</span>
+            )}
+            {isUser && (
+              <span className="badge bg-success text-dark">Usuario</span>
+            )}
           </div>
+          <hr className="border-white opacity-25" />
 
           {/* Menú de navegación */}
           <nav className="mt-4">
@@ -166,49 +170,97 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
               </li>
               <li className="nav-item">
                 <a
-                  className={getLinkClasses('/cotizaciones')}
-                  style={getItemStyle('/cotizaciones')}
+                  className={isAdmin ? getLinkClasses('/cotizaciones') : `${getLinkClasses('/cotizaciones')} disabled`}
+                  style={isAdmin ? getItemStyle('/cotizaciones') : { ...getItemStyle('/cotizaciones'), opacity: 0.6, cursor: 'not-allowed' }}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate('/cotizaciones');
-                    if (onClose) onClose();
+                    if (isAdmin) {
+                      navigate('/cotizaciones');
+                      if (onClose) onClose();
+                    }
                   }}
                 >
                   <i className="bi bi-file-earmark-text me-2"></i>
                   Cotizaciones
+                  {!isAdmin && (
+                    <span
+                      className="ms-2 badge"
+                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
+                    >
+                      Próximamente
+                    </span>
+                  )}
                 </a>
               </li>
               <li className="nav-item">
                 <a
-                  className={getLinkClasses('/ventas')}
-                  style={getItemStyle('/ventas')}
+                  className={isAdmin ? getLinkClasses('/ventas') : `${getLinkClasses('/ventas')} disabled`}
+                  style={isAdmin ? getItemStyle('/ventas') : { ...getItemStyle('/ventas'), opacity: 0.6, cursor: 'not-allowed' }}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate('/ventas');
-                    if (onClose) onClose();
+                    if (isAdmin) {
+                      navigate('/ventas');
+                      if (onClose) onClose();
+                    }
                   }}
                 >
                   <i className="bi bi-cash-coin me-2"></i>
                   Ventas
+                  {!isAdmin && (
+                    <span
+                      className="ms-2 badge"
+                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
+                    >
+                      Próximamente
+                    </span>
+                  )}
                 </a>
               </li>
               <li className="nav-item">
                 <a
-                  className={getLinkClasses('/compras')}
-                  style={getItemStyle('/compras')}
+                  className={isAdmin ? getLinkClasses('/compras') : `${getLinkClasses('/compras')} disabled`}
+                  style={isAdmin ? getItemStyle('/compras') : { ...getItemStyle('/compras'), opacity: 0.6, cursor: 'not-allowed' }}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate('/compras');
-                    if (onClose) onClose();
+                    if (isAdmin) {
+                      navigate('/compras');
+                      if (onClose) onClose();
+                    }
                   }}
                 >
                   <i className="bi bi-bag me-2"></i>
                   Compras
+                  {!isAdmin && (
+                    <span
+                      className="ms-2 badge"
+                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
+                    >
+                      Próximamente
+                    </span>
+                  )}
                 </a>
               </li>
+              {/* Opción de logs solo visible para administradores */}
+              {isAdmin && (
+                <li className="nav-item">
+                  <a
+                    className={getLinkClasses('/registros')}
+                    style={getItemStyle('/registros')}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/registros');
+                      if (onClose) onClose();
+                    }}
+                  >
+                    <i className="bi bi-journal-text me-2"></i>
+                    Registros
+                  </a>
+                </li>
+              )}
               {/* Añadir más opciones de menú aquí */}
             </ul>
           </nav>

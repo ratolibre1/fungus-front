@@ -17,12 +17,31 @@ export const getPurchases = async (): Promise<PurchasesResponse> => {
     headers: getAuthHeaders()
   });
 
-  const apiResponse = await handleApiResponse<{ count: number, data: Purchase[] }>(response);
-  return {
-    success: apiResponse.success,
-    count: apiResponse.data.count,
-    data: apiResponse.data.data
+  // Usar unknown para el tipo y validar la estructura después
+  const apiResponse = await handleApiResponse<unknown>(response);
+  console.log('Respuesta original API en purchaseService:', apiResponse);
+
+  const result: PurchasesResponse = {
+    success: true,
+    data: []
   };
+
+  if (apiResponse && typeof apiResponse === 'object' && 'success' in apiResponse) {
+    result.success = (apiResponse as any).success;
+
+    // Verificar la estructura de la respuesta para manejar ambos casos
+    if ('data' in apiResponse && typeof (apiResponse as any).data === 'object') {
+      if ('data' in (apiResponse as any).data && Array.isArray((apiResponse as any).data.data)) {
+        // Estructura: { success: true, data: { count: number, data: Purchase[] } }
+        result.data = (apiResponse as any).data.data || [];
+      } else if (Array.isArray((apiResponse as any).data)) {
+        // Estructura: { success: true, data: Purchase[] }
+        result.data = (apiResponse as any).data || [];
+      }
+    }
+  }
+
+  return result;
 };
 
 // Buscar compras por término
@@ -44,12 +63,31 @@ export const searchPurchases = async (params: PurchaseSearchParams): Promise<Pur
     headers: getAuthHeaders()
   });
 
-  const apiResponse = await handleApiResponse<{ count: number, data: Purchase[] }>(response);
-  return {
-    success: apiResponse.success,
-    count: apiResponse.data.count,
-    data: apiResponse.data.data
+  // Usar unknown para el tipo y validar la estructura después
+  const apiResponse = await handleApiResponse<unknown>(response);
+  console.log('Respuesta de búsqueda API en purchaseService:', apiResponse);
+
+  const result: PurchasesResponse = {
+    success: true,
+    data: []
   };
+
+  if (apiResponse && typeof apiResponse === 'object' && 'success' in apiResponse) {
+    result.success = (apiResponse as any).success;
+
+    // Verificar la estructura de la respuesta para manejar ambos casos
+    if ('data' in apiResponse && typeof (apiResponse as any).data === 'object') {
+      if ('data' in (apiResponse as any).data && Array.isArray((apiResponse as any).data.data)) {
+        // Estructura: { success: true, data: { count: number, data: Purchase[] } }
+        result.data = (apiResponse as any).data.data || [];
+      } else if (Array.isArray((apiResponse as any).data)) {
+        // Estructura: { success: true, data: Purchase[] }
+        result.data = (apiResponse as any).data || [];
+      }
+    }
+  }
+
+  return result;
 };
 
 // Obtener una compra específica por ID

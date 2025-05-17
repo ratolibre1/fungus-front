@@ -33,6 +33,12 @@ export default function Quotations() {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
 
+  // Estados para búsqueda y filtros
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterClient, setFilterClient] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+
   // Datos necesarios para el modal
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,6 +82,24 @@ export default function Quotations() {
     } finally {
       setIsLoadingData(false);
     }
+  };
+
+  // Manejar búsqueda
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    setIsSearching(true);
+    // Aquí se implementaría la búsqueda real con filtros
+    // Por ahora, simplemente filtramos los datos locales
+    setIsSearching(false);
+  };
+
+  // Resetear búsqueda
+  const resetSearch = () => {
+    setSearchTerm('');
+    setFilterStatus('');
+    setFilterClient('');
+    loadQuotations();
   };
 
   // Obtener texto y color según estado
@@ -237,8 +261,79 @@ export default function Quotations() {
 
         {/* Mensajes de error */}
         {error && (
-          <div className="alert alert-danger" role="alert">
+          <div className="alert text-white" style={{ backgroundColor: '#dc3545' }} role="alert">
             {error}
+          </div>
+        )}
+
+        {/* Filtros - Solo mostrar si hay cotizaciones */}
+        {!loading && quotations.length > 0 && (
+          <div className="card mb-4 border-0 shadow-sm">
+            <div className="card-body">
+              <form onSubmit={handleSearch} className="row g-3">
+                <div className="col-md-4">
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Buscar por N° cotización o cliente..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="submit"
+                      disabled={isSearching}
+                    >
+                      {isSearching ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        <i className="bi bi-search"></i>
+                      )}
+                    </button>
+                    {(searchTerm || filterStatus || filterClient) && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        onClick={resetSearch}
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-md-4">
+                  <select
+                    className="form-select"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="">Todos los estados</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="approved">Aprobada</option>
+                    <option value="rejected">Rechazada</option>
+                    <option value="converted">Convertida</option>
+                    <option value="expired">Expirada</option>
+                  </select>
+                </div>
+
+                <div className="col-md-4">
+                  <select
+                    className="form-select"
+                    value={filterClient}
+                    onChange={(e) => setFilterClient(e.target.value)}
+                  >
+                    <option value="">Todos los clientes</option>
+                    {clients.map(client => (
+                      <option key={client._id} value={client._id}>
+                        {client.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -251,7 +346,7 @@ export default function Quotations() {
           </div>
         ) : (!quotations || !Array.isArray(quotations) || quotations.length === 0) ? (
           <div className="alert alert-info" role="alert">
-            No hay cotizaciones disponibles.
+            No hay cotizaciones registradas.
           </div>
         ) : (
           <div className="table-responsive">
@@ -314,7 +409,7 @@ export default function Quotations() {
                       </span>
                     </td>
                     <td className="text-center">
-                      <div className="btn-group" style={{ gap: '4px' }}>
+                      <div className="btn-group">
                         <button
                           className="btn btn-sm btn-outline-success"
                           onClick={(e) => {

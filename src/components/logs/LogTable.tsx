@@ -1,5 +1,4 @@
 import { Log, LogPagination } from '../../types/Log';
-import { formatDate } from '../../utils/dateUtils';
 
 interface LogTableProps {
   logs: Log[];
@@ -163,7 +162,7 @@ export default function LogTable({
           {logs.map(log => (
             <tr key={log._id}>
               <td>
-                <div>{formatDate(log.createdAt)}</div>
+                <div>{log.createdAt}</div>
                 <small className="text-muted">{new Date(log.createdAt).toLocaleTimeString()}</small>
               </td>
               <td>

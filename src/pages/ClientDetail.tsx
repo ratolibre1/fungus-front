@@ -253,7 +253,7 @@ export default function ClientDetail() {
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body">
                     <h6 className="text-muted mb-2">Total Ventas</h6>
-                    <h3>{clientData.statistics.totalPurchases}</h3>
+                    <h3>{clientData.statistics?.totalPurchases || 0}</h3>
                   </div>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function ClientDetail() {
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body">
                     <h6 className="text-muted mb-2">Total Gastado</h6>
-                    <h3>{formatPrice(clientData.statistics.totalSpent)}</h3>
+                    <h3>{clientData.statistics?.totalSpent ? formatPrice(clientData.statistics.totalSpent) : formatPrice(0)}</h3>
                   </div>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function ClientDetail() {
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body">
                     <h6 className="text-muted mb-2">Ticket Promedio</h6>
-                    <h3>{formatPrice(clientData.statistics.averagePurchase)}</h3>
+                    <h3>{clientData.statistics?.averagePurchase ? formatPrice(clientData.statistics.averagePurchase) : formatPrice(0)}</h3>
                   </div>
                 </div>
               </div>
@@ -277,8 +277,8 @@ export default function ClientDetail() {
                 <div className="card border-0 shadow-sm h-100">
                   <div className="card-body">
                     <h6 className="text-muted mb-2">Primera/Última Venta</h6>
-                    <p className="mb-0">{formatDate(clientData.statistics.firstPurchaseDate)}</p>
-                    <p className="mb-0">{formatDate(clientData.statistics.lastPurchaseDate)}</p>
+                    <p className="mb-0">{clientData.statistics?.firstPurchaseDate ? formatDate(clientData.statistics.firstPurchaseDate) : '-'}</p>
+                    <p className="mb-0">{clientData.statistics?.lastPurchaseDate ? formatDate(clientData.statistics.lastPurchaseDate) : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -379,7 +379,7 @@ export default function ClientDetail() {
             </div>
 
             {/* Detalle de la última venta */}
-            {clientData.purchases.length > 0 && (
+            {clientData.purchases && clientData.purchases.length > 0 && (
               <div className="card border-0 shadow-sm">
                 <div className="card-header bg-white border-bottom-0">
                   <h5 className="mb-0">Última Venta (Detalle)</h5>
@@ -407,7 +407,7 @@ export default function ClientDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {clientData.purchases[0].items.map((item, index) => (
+                        {clientData.purchases[0].items && clientData.purchases[0].items.map((item, index) => (
                           <tr key={index}>
                             <td>{item.product}</td>
                             <td>{item.quantity}</td>

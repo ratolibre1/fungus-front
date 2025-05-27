@@ -32,7 +32,7 @@ export interface ClientStatistics {
 export interface ClientDetailData {
   client: ClientBasic;
   purchases: Purchase[];
-  statistics: ClientStatistics;
+  statistics?: ClientStatistics;
   isSupplier?: boolean;
   supplierId?: string;
 }

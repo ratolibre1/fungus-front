@@ -25,8 +25,8 @@ export const getQuotations = async (filters: QuotationFilters = {}): Promise<Quo
   if (filters.startDate) params.append('startDate', filters.startDate);
   if (filters.endDate) params.append('endDate', filters.endDate);
   if (filters.counterparty) params.append('counterparty', filters.counterparty);
-  if (filters.sortField) params.append('sortField', filters.sortField);
-  if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
+  if (filters.sortField) params.append('sort', filters.sortField);
+  if (filters.sortDirection) params.append('order', filters.sortDirection);
 
   const url = `${API_URL}/quotations${params.toString() ? `?${params.toString()}` : ''}`;
 

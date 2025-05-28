@@ -158,57 +158,34 @@ export default function QuotationTable({
   const renderPagination = () => {
     if (!pagination) return null;
 
-    const { page, pages: totalPages } = pagination;
+    const { page, pages: totalPages, total, limit } = pagination;
 
-    // Si no hay suficientes páginas, no mostrar paginador
-    if (totalPages <= 1) return null;
-
-    // Generar array de páginas a mostrar
-    let pages = [];
-
-    // Mostrar siempre primera y última página
-    // Y algunas páginas alrededor de la actual
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 || // Primera página
-        i === totalPages || // Última página
-        (i >= page - 1 && i <= page + 1) // Páginas cercanas a la actual
-      ) {
-        pages.push(i);
-      } else if (
-        (i === page - 2 && page > 2) || // Puntos suspensivos antes
-        (i === page + 2 && page < totalPages - 1) // Puntos suspensivos después
-      ) {
-        pages.push(-i); // Usamos número negativo para indicar puntos suspensivos
-      }
-    }
-
-    // Eliminar duplicados y ordenar
-    pages = [...new Set(pages)].sort((a, b) => Math.abs(a) - Math.abs(b));
+    // Calcular el rango de elementos mostrados
+    const startItem = (page - 1) * limit + 1;
+    const endItem = Math.min(page * limit, total);
 
     return (
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 p-3 bg-light rounded">
-        {/* Información de registros y selector de cantidad */}
-        <div className="d-flex flex-column flex-sm-row align-items-center mb-2 mb-md-0">
-          <div className="me-3 mb-2 mb-sm-0">
-            <span className="badge bg-primary fs-6">
-              <i className="bi bi-info-circle me-1"></i>
-              {quotations.length} de {pagination.total} registros
-            </span>
-          </div>
+      <div className="d-flex flex-column flex-lg-row justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+        {/* Información de registros mostrados */}
+        <div className="d-flex flex-column flex-sm-row align-items-center mb-3 mb-lg-0">
+          <span className="text-muted mb-2 mb-sm-0 me-sm-3">
+            Mostrando <strong>{startItem}-{endItem}</strong> de <strong>{total}</strong> registros
+          </span>
+
           <div className="d-flex align-items-center">
-            <label htmlFor="page-size" className="form-label me-2 mb-0 text-nowrap">
-              Mostrar:
+            <label htmlFor="page-size" className="form-label me-2 mb-0 text-nowrap text-muted">
+              Registros por página:
             </label>
             <select
               id="page-size"
               className="form-select form-select-sm"
-              value={pagination.limit}
+              value={limit}
               onChange={(e) => onLimitChange(parseInt(e.target.value))}
-              style={{ width: 'auto' }}
+              style={{ width: 'auto', minWidth: '70px' }}
             >
               <option value="5">5</option>
               <option value="10">10</option>
+              <option value="20">20</option>
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -216,81 +193,106 @@ export default function QuotationTable({
           </div>
         </div>
 
-        {/* Controles de paginación */}
-        <div className="d-flex flex-column flex-sm-row align-items-center">
-          {/* Navegación rápida */}
-          <form onSubmit={handlePageSubmit} className="d-flex align-items-center me-3 mb-2 mb-sm-0">
-            <span className="me-2 text-nowrap">Página:</span>
-            <input
-              type="text"
-              className="form-control form-control-sm"
-              style={{ width: '60px' }}
-              value={pageInput}
-              onChange={handlePageInputChange}
-              aria-label="Ir a página"
-            />
-            <span className="mx-2">de {totalPages}</span>
-            <button type="submit" className="btn btn-sm btn-outline-primary">
-              <i className="bi bi-arrow-right"></i>
-            </button>
-          </form>
+        {/* Controles de paginación principales */}
+        {totalPages > 1 && (
+          <div className="d-flex align-items-center">
+            {/* Botones de navegación */}
+            <nav aria-label="Paginación de cotizaciones" className="me-3">
+              <div className="btn-group" role="group">
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => onPageChange(1)}
+                  disabled={page === 1}
+                  title="Primera página"
+                >
+                  <i className="bi bi-chevron-double-left"></i>
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => onPageChange(page - 1)}
+                  disabled={page === 1}
+                  title="Página anterior"
+                >
+                  <i className="bi bi-chevron-left"></i>
+                </button>
 
-          {/* Botones de paginación */}
-          <nav aria-label="Paginación de cotizaciones">
-            <div className="btn-group" role="group">
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => onPageChange(1)}
-                disabled={page === 1}
-                title="Primera página"
-              >
-                <i className="bi bi-chevron-double-left"></i>
-              </button>
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => onPageChange(page - 1)}
-                disabled={page === 1}
-                title="Página anterior"
-              >
-                <i className="bi bi-chevron-left"></i>
-              </button>
+                {/* Páginas numeradas */}
+                {(() => {
+                  // Generar array de páginas a mostrar
+                  let pages = [];
 
-              {pages.map(p => (
-                p < 0 ? (
-                  <button key={p} className="btn btn-outline-secondary btn-sm" disabled>
-                    ...
-                  </button>
-                ) : (
-                  <button
-                    key={p}
-                    className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => onPageChange(p)}
-                    style={p === page ? { backgroundColor: '#099347', borderColor: '#099347' } : {}}
-                  >
-                    {p}
-                  </button>
-                )
-              ))}
+                  // Mostrar siempre primera y última página
+                  // Y algunas páginas alrededor de la actual
+                  for (let i = 1; i <= totalPages; i++) {
+                    if (
+                      i === 1 || // Primera página
+                      i === totalPages || // Última página
+                      (i >= page - 1 && i <= page + 1) // Páginas cercanas a la actual
+                    ) {
+                      pages.push(i);
+                    } else if (
+                      (i === page - 2 && page > 3) || // Puntos suspensivos antes
+                      (i === page + 2 && page < totalPages - 2) // Puntos suspensivos después
+                    ) {
+                      pages.push(-i); // Usamos número negativo para indicar puntos suspensivos
+                    }
+                  }
 
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => onPageChange(page + 1)}
-                disabled={page === totalPages}
-                title="Página siguiente"
-              >
-                <i className="bi bi-chevron-right"></i>
-              </button>
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => onPageChange(totalPages)}
-                disabled={page === totalPages}
-                title="Última página"
-              >
-                <i className="bi bi-chevron-double-right"></i>
-              </button>
-            </div>
-          </nav>
-        </div>
+                  // Eliminar duplicados y ordenar
+                  pages = [...new Set(pages)].sort((a, b) => Math.abs(a) - Math.abs(b));
+
+                  return pages.map(p => (
+                    p < 0 ? (
+                      <button key={p} className="btn btn-outline-secondary btn-sm" disabled>
+                        ...
+                      </button>
+                    ) : (
+                      <button
+                        key={p}
+                        className={`btn btn-sm ${p === page ? 'btn-success' : 'btn-outline-secondary'}`}
+                        onClick={() => onPageChange(p)}
+                        style={p === page ? { backgroundColor: '#099347', borderColor: '#099347' } : {}}
+                      >
+                        {p}
+                      </button>
+                    )
+                  ));
+                })()}
+
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => onPageChange(page + 1)}
+                  disabled={page === totalPages}
+                  title="Página siguiente"
+                >
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => onPageChange(totalPages)}
+                  disabled={page === totalPages}
+                  title="Última página"
+                >
+                  <i className="bi bi-chevron-double-right"></i>
+                </button>
+              </div>
+            </nav>
+
+            {/* Navegación rápida */}
+            <form onSubmit={handlePageSubmit} className="d-flex align-items-center">
+              <span className="me-2 text-muted text-nowrap">Página:</span>
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                style={{ width: '60px' }}
+                value={pageInput}
+                onChange={handlePageInputChange}
+                aria-label="Ir a página"
+              />
+              <span className="mx-2 text-muted">de {totalPages}</span>
+            </form>
+          </div>
+        )}
       </div>
     );
   };

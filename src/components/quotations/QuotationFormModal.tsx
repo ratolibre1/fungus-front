@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Quotation, DocumentType } from '../../types/quotation';
 import { Client } from '../../types/client';
 import { Product } from '../../types/product';
-import { Consumable } from '../../types/consumable';
 import { getClients } from '../../services/clientService';
 import { getProducts } from '../../services/productService';
-import { getConsumables } from '../../services/consumableService';
 import { previewQuotation } from '../../services/quotationService';
 
 interface QuotationFormData {
@@ -19,7 +17,6 @@ interface QuotationFormData {
 
 interface QuotationItemForm {
   item: string;
-  itemType: 'product' | 'consumable';
   itemName: string;
   quantity: number;
   unitPrice: number;
@@ -192,10 +189,9 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
   );
 };
 
-// Componente de búsqueda para productos/consumibles
+// Componente de búsqueda para productos (solo productos, no consumibles)
 interface ProductSearchProps {
   products: Product[];
-  consumables: Consumable[];
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -204,7 +200,6 @@ interface ProductSearchProps {
 
 const ProductSearchSelector: React.FC<ProductSearchProps> = ({
   products,
-  consumables,
   value,
   onChange,
   disabled,
@@ -213,21 +208,16 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Combinar productos y consumibles
-  const allItems = [
-    ...products.map(p => ({ ...p, type: 'product' as const })),
-    ...consumables.map(c => ({ ...c, type: 'consumable' as const }))
-  ];
-
-  const filteredItems = allItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+  // Solo usar productos (sin consumibles)
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedItem = allItems.find(i => i._id === value);
+  const selectedProduct = products.find(p => p._id === value);
 
-  const handleSelect = (itemId: string) => {
-    onChange(itemId);
+  const handleSelect = (productId: string) => {
+    onChange(productId);
     setIsOpen(false);
     setSearchTerm('');
   };
@@ -238,17 +228,17 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
     setIsOpen(false);
   };
 
-  const formatItemDisplay = (item: Product | Consumable) => {
-    const dimensions = 'dimensions' in item && item.dimensions ? ` (${item.dimensions})` : '';
-    return `${item.name} - ${item.description}${dimensions}`;
+  const formatProductDisplay = (product: Product) => {
+    const dimensions = product.dimensions ? ` (${product.dimensions})` : '';
+    return `${product.name} - ${product.description}${dimensions}`;
   };
 
-  const formatItemDisplayJSX = (item: Product | Consumable) => {
-    const dimensions = 'dimensions' in item && item.dimensions ? ` (${item.dimensions})` : '';
+  const formatProductDisplayJSX = (product: Product) => {
+    const dimensions = product.dimensions ? ` (${product.dimensions})` : '';
     return (
       <span>
-        <strong>{item.name}</strong> -
-        <small className="text-muted"> {item.description}{dimensions}</small>
+        <strong>{product.name}</strong> -
+        <small className="text-muted"> {product.description}{dimensions}</small>
       </span>
     );
   };
@@ -259,8 +249,8 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
         <input
           type="text"
           className={`form-control ${error ? 'is-invalid' : ''}`}
-          placeholder="Buscar producto o consumible..."
-          value={selectedItem ? formatItemDisplay(selectedItem) : searchTerm}
+          placeholder="Buscar producto..."
+          value={selectedProduct ? formatProductDisplay(selectedProduct) : searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setIsOpen(true);
@@ -307,7 +297,7 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Buscar productos o consumibles..."
+                  placeholder="Buscar productos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   autoFocus
@@ -319,55 +309,22 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
             </div>
 
             <div className="list-group list-group-flush" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-              {filteredItems.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <div className="list-group-item text-center text-muted py-3">
                   <i className="bi bi-search me-2"></i>
-                  No se encontraron resultados
+                  No se encontraron productos
                 </div>
               ) : (
-                <>
-                  {/* Productos */}
-                  {filteredItems.filter(item => item.type === 'product').length > 0 && (
-                    <>
-                      <div className="list-group-item bg-light py-1">
-                        <small className="text-muted fw-bold">PRODUCTOS</small>
-                      </div>
-                      {filteredItems
-                        .filter(item => item.type === 'product')
-                        .map(item => (
-                          <button
-                            key={`product_${item._id}`}
-                            type="button"
-                            className={`list-group-item list-group-item-action py-2 ${value === item._id ? 'active' : ''}`}
-                            onClick={() => handleSelect(item._id)}
-                          >
-                            {formatItemDisplayJSX(item)}
-                          </button>
-                        ))}
-                    </>
-                  )}
-
-                  {/* Consumibles */}
-                  {filteredItems.filter(item => item.type === 'consumable').length > 0 && (
-                    <>
-                      <div className="list-group-item bg-light py-1">
-                        <small className="text-muted fw-bold">CONSUMIBLES</small>
-                      </div>
-                      {filteredItems
-                        .filter(item => item.type === 'consumable')
-                        .map(item => (
-                          <button
-                            key={`consumable_${item._id}`}
-                            type="button"
-                            className={`list-group-item list-group-item-action py-2 ${value === item._id ? 'active' : ''}`}
-                            onClick={() => handleSelect(item._id)}
-                          >
-                            {formatItemDisplayJSX(item)}
-                          </button>
-                        ))}
-                    </>
-                  )}
-                </>
+                filteredProducts.map(product => (
+                  <button
+                    key={`product_${product._id}`}
+                    type="button"
+                    className={`list-group-item list-group-item-action py-2 ${value === product._id ? 'active' : ''}`}
+                    onClick={() => handleSelect(product._id)}
+                  >
+                    {formatProductDisplayJSX(product)}
+                  </button>
+                ))
               )}
             </div>
           </div>
@@ -408,7 +365,6 @@ export default function QuotationFormModal({
   // Estados para opciones de select
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [consumables, setConsumables] = useState<Consumable[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
   // Estados para UI
@@ -446,19 +402,17 @@ export default function QuotationFormModal({
     }
   }, [quotation, isOpen]);
 
-  // Cargar clientes, productos y consumibles
+  // Cargar clientes y productos (sin consumibles)
   const loadInitialData = async () => {
     setLoadingData(true);
     try {
-      const [clientsRes, productsRes, consumablesRes] = await Promise.all([
+      const [clientsRes, productsRes] = await Promise.all([
         getClients(), // Sin parámetros
-        getProducts({}), // Con objeto vacío
-        getConsumables({}) // Con objeto vacío
+        getProducts({}) // Con objeto vacío
       ]);
 
       setClients(clientsRes.data);
       setProducts(productsRes.data);
-      setConsumables(consumablesRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -473,7 +427,6 @@ export default function QuotationFormModal({
 
       return {
         item: typeof item.itemDetail === 'string' ? item.itemDetail : itemDetail?._id || '',
-        itemType: 'product', // Por defecto, luego se puede determinar
         itemName: itemDetail?.name || '',
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -545,7 +498,6 @@ export default function QuotationFormModal({
         ...prev.items,
         {
           item: '',
-          itemType: 'product',
           itemName: '',
           quantity: 1,
           unitPrice: 0,
@@ -573,16 +525,10 @@ export default function QuotationFormModal({
       // Si se cambia el item, buscar su nombre y tipo
       if (field === 'item' && value) {
         const product = products.find(p => p._id === value);
-        const consumable = consumables.find(c => c._id === value);
 
         if (product) {
-          newItems[index].itemType = 'product';
           newItems[index].itemName = product.name;
           newItems[index].unitPrice = product.netPrice || 0;
-        } else if (consumable) {
-          newItems[index].itemType = 'consumable';
-          newItems[index].itemName = consumable.name;
-          newItems[index].unitPrice = consumable.netPrice || 0;
         }
       }
 
@@ -861,7 +807,6 @@ export default function QuotationFormModal({
                                   <td>
                                     <ProductSearchSelector
                                       products={products}
-                                      consumables={consumables}
                                       value={item.item}
                                       onChange={(value) => updateItem(index, 'item', value)}
                                       disabled={loading}

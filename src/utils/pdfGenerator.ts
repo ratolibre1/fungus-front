@@ -90,13 +90,17 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
     if (quotation.counterparty.rut) clientData.push(['RUT:', formatRUT(quotation.counterparty.rut)]);
     if (quotation.counterparty.email) clientData.push(['Email:', quotation.counterparty.email]);
     if (quotation.counterparty.phone) clientData.push(['Teléfono:', quotation.counterparty.phone]);
-    if (quotation.counterparty.address) clientData.push(['Dirección:', quotation.counterparty.address]);
+    if (quotation.counterparty.address) {
+      // Manejo especial para direcciones largas
+      const addressLines = doc.splitTextToSize(quotation.counterparty.address, 40);
+      clientData.push(['Dirección:', addressLines]);
+    }
   } else {
     clientData.push(['ID Cliente:', quotation.counterparty]);
   }
 
   // Renderizar tabla invisible para Información General (columna izquierda)
-  yPosition += 12;
+  yPosition += 8;
   let currentY = yPosition;
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
@@ -106,7 +110,7 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
     doc.text(row[0], 20, currentY);
     doc.setFont('helvetica', 'normal');
     doc.text(row[1], 65, currentY);
-    currentY += 6;
+    currentY += 5;
   });
 
   // Renderizar tabla invisible para Cliente (columna derecha)
@@ -115,12 +119,21 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
     doc.setFont('helvetica', 'bold');
     doc.text(row[0], 110, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(row[1], 150, currentY);
-    currentY += 6;
+
+    // Si es dirección y tiene múltiples líneas
+    if (Array.isArray(row[1])) {
+      row[1].forEach((line, index) => {
+        doc.text(line, 150, currentY + (index * 4));
+      });
+      currentY += (row[1].length - 1) * 4; // Ajustar espacio para líneas adicionales
+    } else {
+      doc.text(row[1], 150, currentY);
+    }
+    currentY += 5;
   });
 
   // Calcular la nueva posición Y basada en la tabla más larga
-  yPosition = Math.max(yPosition + (generalData.length * 6), yPosition + (clientData.length * 6)) + 15;
+  yPosition = Math.max(yPosition + (generalData.length * 5), currentY) + 12;
 
   // Observaciones antes del detalle de productos (si existen)
   if (quotation.observations) {

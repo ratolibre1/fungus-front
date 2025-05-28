@@ -26,7 +26,7 @@ export default function Quotations() {
     total: 0,
     pages: 0,
     page: 1,
-    limit: 10,
+    limit: 20,
     hasNext: false,
     hasPrev: false
   });
@@ -36,7 +36,7 @@ export default function Quotations() {
   // Estado para los filtros
   const [filters, setFilters] = useState<QuotationFilters>({
     page: 1,
-    limit: 10,
+    limit: 20,
     sortField: 'documentNumber',
     sortDirection: 'desc'
   });
@@ -183,7 +183,7 @@ export default function Quotations() {
   const handleResetFilters = () => {
     setFilters({
       page: 1,
-      limit: 10,
+      limit: 20,
       sortField: 'documentNumber',
       sortDirection: 'desc'
     });

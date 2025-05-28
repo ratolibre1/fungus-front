@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quotation } from '../../types/quotation';
 import { formatCurrency } from '../../utils/formatters';
+import { generateQuotationPDF } from '../../utils/pdfGenerator';
 
 interface QuotationDetailsModalProps {
   quotation: Quotation | null;
@@ -61,6 +62,16 @@ export default function QuotationDetailsModal({ quotation, onClose, onEdit }: Qu
   // Obtener nombre del usuario cotizador
   const getUserName = () => {
     return typeof quotation.user === 'object' ? quotation.user.name : quotation.user;
+  };
+
+  // Función para manejar la generación del PDF
+  const handleGeneratePDF = () => {
+    try {
+      generateQuotationPDF(quotation);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    }
   };
 
   return (
@@ -210,6 +221,15 @@ export default function QuotationDetailsModal({ quotation, onClose, onEdit }: Qu
               )}
             </div>
             <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-fungus me-2"
+                onClick={handleGeneratePDF}
+                title="Generar PDF"
+              >
+                <i className="bi bi-file-earmark-pdf me-1"></i>
+                Generar PDF
+              </button>
               {onEdit && (
                 <button
                   type="button"

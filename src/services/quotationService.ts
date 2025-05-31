@@ -11,6 +11,9 @@ import {
   QuotationPreviewResponse
 } from '../types/quotation';
 
+// Importar la nueva función de conversión
+import { convertQuotationToSale } from './saleService';
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 /**
@@ -103,6 +106,7 @@ export const deleteQuotation = async (id: string): Promise<QuotationDeleteRespon
 
 /**
  * Actualiza el estado de una cotización
+ * ⚠️ DEPRECADO: Para conversión a venta, usar convertQuotationToSale en su lugar
  */
 export const updateQuotationStatus = async (id: string, status: string): Promise<QuotationStatusUpdateResponse> => {
   const response = await fetchWithInterceptor<QuotationStatusUpdateResponse>(`${API_URL}/quotations/${id}/status`, {
@@ -112,4 +116,13 @@ export const updateQuotationStatus = async (id: string, status: string): Promise
   });
 
   return response as unknown as QuotationStatusUpdateResponse;
-}; 
+};
+
+/**
+ * 🔄 Convierte una cotización aprobada a venta
+ * Esta función reemplaza el flujo anterior de solo cambiar estado a 'converted'
+ * 
+ * @param quotationId ID de la cotización a convertir
+ * @returns Promesa que resuelve con la venta creada
+ */
+export { convertQuotationToSale }; 

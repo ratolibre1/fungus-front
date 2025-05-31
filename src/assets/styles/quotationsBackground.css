@@ -137,3 +137,41 @@
 .quotation-point:nth-child(13n) {
   color: #1A5A76;
 }
+
+/* Asegurar que los dropdowns se vean completamente */
+.table-responsive {
+  overflow: visible !important;
+}
+
+.dropdown-menu {
+  z-index: 1050 !important;
+}
+
+.sale-point:nth-child(13n) {
+  color: #1A5A76;
+}
+
+/* Asegurar que los dropdowns de estado se vean completamente */
+.quotations-page-container .dropdown {
+  position: static;
+}
+
+.quotations-page-container .dropdown-menu {
+  z-index: 1050 !important;
+  position: absolute !important;
+}
+
+/* En móvil, mantener el overflow para scroll horizontal */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* En desktop, permitir que los dropdowns se salgan */
+@media (min-width: 769px) {
+  .table-responsive {
+    overflow: visible !important;
+  }
+}

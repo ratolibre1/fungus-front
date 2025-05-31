@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Quotation, QuotationPagination, QuotationStatus, DocumentType } from '../../types/quotation';
+import { Sale, SalePagination, SaleStatus, DocumentType, getSaleStatusLabel, getSaleStatusColor } from '../../types/sale';
+import { formatSaleAmount } from '../../services/saleService';
 
-interface QuotationTableProps {
-  quotations: Quotation[];
-  pagination: QuotationPagination;
+interface SaleTableProps {
+  sales: Sale[];
+  pagination: SalePagination;
   loading: boolean;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
-  onViewDetails: (quotation: Quotation) => void;
-  onEditQuotation: (quotation: Quotation) => void;
-  onDeleteQuotation: (quotation: Quotation) => void;
-  onStatusChange: (quotation: Quotation, newStatus: QuotationStatus) => void;
+  onViewDetails: (sale: Sale) => void;
+  onEditSale: (sale: Sale) => void;
+  onDeleteSale: (sale: Sale) => void;
+  onStatusChange: (sale: Sale, newStatus: SaleStatus) => void;
   onSort?: (field: string, direction: 'asc' | 'desc') => void;
   initialSort?: { field: string; direction: 'asc' | 'desc' };
 }
@@ -21,28 +22,19 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 } | null;
 
-// Función para formatear moneda localmente
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
-
-export default function QuotationTable({
-  quotations,
+export default function SaleTable({
+  sales,
   pagination,
   loading,
   onPageChange,
   onLimitChange,
   onViewDetails,
-  onEditQuotation,
-  onDeleteQuotation,
+  onEditSale,
+  onDeleteSale,
   onStatusChange,
   onSort,
   initialSort
-}: QuotationTableProps) {
+}: SaleTableProps) {
   // Estado para manejar ordenamiento
   const [sortConfig, setSortConfig] = useState<SortConfig>(
     initialSort ? { key: initialSort.field, direction: initialSort.direction } : null
@@ -65,7 +57,7 @@ export default function QuotationTable({
     }
   };
 
-  // Obtener el ícono de ordenamiento estilo productos
+  // Obtener el ícono de ordenamiento
   const getSortIcon = (key: string) => {
     if (!sortConfig || sortConfig.key !== key) {
       return <i className="bi bi-arrow-down-square ms-1"></i>;
@@ -100,37 +92,20 @@ export default function QuotationTable({
         <div className="spinner-border" style={{ color: '#099347' }} role="status">
           <span className="visually-hidden">Cargando...</span>
         </div>
-        <p className="mt-2">Cargando cotizaciones...</p>
+        <p className="mt-2">Cargando ventas...</p>
       </div>
     );
   }
 
-  // Renderizar mensaje si no hay cotizaciones
-  if (quotations.length === 0) {
+  // Renderizar mensaje si no hay ventas
+  if (sales.length === 0) {
     return (
       <div className="alert alert-info text-center my-4" role="alert">
         <i className="bi bi-info-circle me-2"></i>
-        No se encontraron cotizaciones con los filtros aplicados
+        No se encontraron ventas con los filtros aplicados
       </div>
     );
   }
-
-  // Mapeo de estados a etiquetas con colores - tamaño estandarizado
-  const statusLabel = (status: QuotationStatus) => {
-    const badgeClass = "badge fs-8"; // fs-8 para tamaño estándar
-    switch (status) {
-      case 'pending':
-        return <span className={`${badgeClass} bg-warning text-dark`}>Pendiente</span>;
-      case 'approved':
-        return <span className={`${badgeClass} bg-success`}>Aprobada</span>;
-      case 'rejected':
-        return <span className={`${badgeClass} bg-danger`}>Rechazada</span>;
-      case 'converted':
-        return <span className={`${badgeClass} bg-primary`}>Convertida</span>;
-      default:
-        return <span className={`${badgeClass} bg-secondary`}>{status}</span>;
-    }
-  };
 
   // Formatear fecha
   const formatDate = (dateString: string) => {
@@ -154,7 +129,7 @@ export default function QuotationTable({
     }
   };
 
-  // Generar paginador mejorado y bonito
+  // Generar paginador
   const renderPagination = () => {
     if (!pagination) return null;
 
@@ -197,85 +172,49 @@ export default function QuotationTable({
         {totalPages > 1 && (
           <div className="d-flex align-items-center">
             {/* Botones de navegación */}
-            <nav aria-label="Paginación de cotizaciones" className="me-3">
-              <div className="btn-group" role="group">
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => onPageChange(1)}
-                  disabled={page === 1}
-                  title="Primera página"
-                >
-                  <i className="bi bi-chevron-double-left"></i>
-                </button>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => onPageChange(page - 1)}
-                  disabled={page === 1}
-                  title="Página anterior"
-                >
-                  <i className="bi bi-chevron-left"></i>
-                </button>
-
-                {/* Páginas numeradas */}
-                {(() => {
-                  // Generar array de páginas a mostrar
-                  let pages = [];
-
-                  // Mostrar siempre primera y última página
-                  // Y algunas páginas alrededor de la actual
-                  for (let i = 1; i <= totalPages; i++) {
-                    if (
-                      i === 1 || // Primera página
-                      i === totalPages || // Última página
-                      (i >= page - 1 && i <= page + 1) // Páginas cercanas a la actual
-                    ) {
-                      pages.push(i);
-                    } else if (
-                      (i === page - 2 && page > 3) || // Puntos suspensivos antes
-                      (i === page + 2 && page < totalPages - 2) // Puntos suspensivos después
-                    ) {
-                      pages.push(-i); // Usamos número negativo para indicar puntos suspensivos
-                    }
-                  }
-
-                  // Eliminar duplicados y ordenar
-                  pages = [...new Set(pages)].sort((a, b) => Math.abs(a) - Math.abs(b));
-
-                  return pages.map(p => (
-                    p < 0 ? (
-                      <button key={p} className="btn btn-outline-secondary btn-sm" disabled>
-                        ...
-                      </button>
-                    ) : (
-                      <button
-                        key={p}
-                        className={`btn btn-sm ${p === page ? 'btn-success' : 'btn-outline-secondary'}`}
-                        onClick={() => onPageChange(p)}
-                        style={p === page ? { backgroundColor: '#099347', borderColor: '#099347' } : {}}
-                      >
-                        {p}
-                      </button>
-                    )
-                  ));
-                })()}
-
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => onPageChange(page + 1)}
-                  disabled={page === totalPages}
-                  title="Página siguiente"
-                >
-                  <i className="bi bi-chevron-right"></i>
-                </button>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => onPageChange(totalPages)}
-                  disabled={page === totalPages}
-                  title="Última página"
-                >
-                  <i className="bi bi-chevron-double-right"></i>
-                </button>
-              </div>
+            <nav aria-label="Paginación de ventas" className="me-3">
+              <ul className="pagination pagination-sm mb-0">
+                <li className={`page-item ${!pagination.hasPrev ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => onPageChange(1)}
+                    disabled={!pagination.hasPrev}
+                    title="Primera página"
+                  >
+                    <i className="bi bi-chevron-double-left"></i>
+                  </button>
+                </li>
+                <li className={`page-item ${!pagination.hasPrev ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={!pagination.hasPrev}
+                    title="Página anterior"
+                  >
+                    <i className="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                <li className={`page-item ${!pagination.hasNext ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={!pagination.hasNext}
+                    title="Página siguiente"
+                  >
+                    <i className="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+                <li className={`page-item ${!pagination.hasNext ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => onPageChange(totalPages)}
+                    disabled={!pagination.hasNext}
+                    title="Última página"
+                  >
+                    <i className="bi bi-chevron-double-right"></i>
+                  </button>
+                </li>
+              </ul>
             </nav>
 
             {/* Navegación rápida */}
@@ -298,10 +237,14 @@ export default function QuotationTable({
   };
 
   // Mostrar el menú desplegable para cambio de estado
-  const renderStatusDropdown = (quotation: Quotation) => {
-    // Si está eliminada o convertida, no mostrar opciones para cambiar estado
-    if (quotation.isDeleted || quotation.status === 'converted') {
-      return statusLabel(quotation.status);
+  const renderStatusDropdown = (sale: Sale) => {
+    // Si está eliminada o es un estado final, no mostrar opciones
+    if (sale.isDeleted || sale.status === 'paid') {
+      return (
+        <span className={`badge bg-${getSaleStatusColor(sale.status)}`}>
+          {getSaleStatusLabel(sale.status)}
+        </span>
+      );
     }
 
     return (
@@ -313,51 +256,30 @@ export default function QuotationTable({
           aria-expanded="false"
           style={{ backgroundColor: 'transparent', border: 'none', padding: '0' }}
         >
-          {statusLabel(quotation.status as QuotationStatus)}
+          <span className={`badge bg-${getSaleStatusColor(sale.status)}`}>
+            {getSaleStatusLabel(sale.status)}
+          </span>
         </button>
         <ul className="dropdown-menu dropdown-menu-end" style={{ zIndex: 1050 }}>
-          {/* No mostrar opción "Pendiente" si la cotización está aprobada */}
-          {quotation.status !== 'approved' && (
+          {sale.status === 'pending' && (
             <li>
               <button
                 className="dropdown-item"
-                onClick={() => onStatusChange(quotation, 'pending')}
-                disabled={quotation.status === 'pending'}
+                onClick={() => onStatusChange(sale, 'invoiced')}
               >
-                <i className="bi bi-hourglass me-2"></i>
-                Pendiente
+                <i className="bi bi-receipt me-2"></i>
+                Facturar
               </button>
             </li>
           )}
-          <li>
-            <button
-              className="dropdown-item"
-              onClick={() => onStatusChange(quotation, 'approved')}
-              disabled={quotation.status === 'approved' || quotation.status === 'rejected'}
-            >
-              <i className="bi bi-check-circle me-2"></i>
-              Aprobar
-            </button>
-          </li>
-          <li>
-            <button
-              className="dropdown-item"
-              onClick={() => onStatusChange(quotation, 'rejected')}
-              disabled={quotation.status === 'rejected'}
-            >
-              <i className="bi bi-x-circle me-2"></i>
-              Rechazar
-            </button>
-          </li>
-          {/* Solo mostrar opción de convertir si está aprobada */}
-          {quotation.status === 'approved' && (
+          {sale.status === 'invoiced' && (
             <li>
               <button
                 className="dropdown-item"
-                onClick={() => onStatusChange(quotation, 'converted')}
+                onClick={() => onStatusChange(sale, 'paid')}
               >
-                <i className="bi bi-arrow-right-circle me-2"></i>
-                Convertir a venta
+                <i className="bi bi-check-circle me-2"></i>
+                Marcar como pagada
               </button>
             </li>
           )}
@@ -366,10 +288,13 @@ export default function QuotationTable({
     );
   };
 
-  // Renderizar botones de acción - ocultar en lugar de deshabilitar
-  const renderActionButtons = (quotation: Quotation) => {
-    const canEdit = quotation.status !== 'converted' && !quotation.isDeleted;
-    const canDelete = quotation.status !== 'converted' && !quotation.isDeleted;
+  // Renderizar botones de acción
+  const renderActionButtons = (sale: Sale) => {
+    // Según especificación backend:
+    // - Solo se pueden editar si están en pending o invoiced
+    // - Solo se pueden eliminar si están en pending
+    const canEdit = (sale.status === 'pending' || sale.status === 'invoiced') && !sale.isDeleted;
+    const canDelete = sale.status === 'pending' && !sale.isDeleted;
 
     return (
       <div className="btn-group" role="group">
@@ -377,7 +302,7 @@ export default function QuotationTable({
         <button
           type="button"
           className="btn btn-sm btn-outline-primary"
-          onClick={() => onViewDetails(quotation)}
+          onClick={() => onViewDetails(sale)}
           data-bs-toggle="tooltip"
           data-bs-placement="top"
           title="Ver detalles"
@@ -390,10 +315,10 @@ export default function QuotationTable({
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary"
-            onClick={() => onEditQuotation(quotation)}
+            onClick={() => onEditSale(sale)}
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="Editar cotización"
+            title="Editar venta"
           >
             <i className="bi bi-pencil"></i>
           </button>
@@ -404,10 +329,10 @@ export default function QuotationTable({
           <button
             type="button"
             className="btn btn-sm btn-outline-danger"
-            onClick={() => onDeleteQuotation(quotation)}
+            onClick={() => onDeleteSale(sale)}
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="Eliminar cotización"
+            title="Eliminar venta"
           >
             <i className="bi bi-trash"></i>
           </button>
@@ -447,21 +372,21 @@ export default function QuotationTable({
               </tr>
             </thead>
             <tbody>
-              {quotations.map(quotation => (
-                <tr key={quotation._id}>
-                  <td>{getDocumentTypeIcon(quotation.documentType)}{quotation.documentNumber}</td>
-                  <td>{formatDate(quotation.date)}</td>
+              {sales.map(sale => (
+                <tr key={sale._id}>
+                  <td>{getDocumentTypeIcon(sale.documentType)}{sale.documentNumber}</td>
+                  <td>{formatDate(sale.date)}</td>
                   <td>
-                    {typeof quotation.counterparty === 'object' ? (
-                      quotation.counterparty.name
+                    {typeof sale.counterparty === 'object' ? (
+                      sale.counterparty.name
                     ) : (
-                      <span className="text-muted">ID: {quotation.counterparty}</span>
+                      <span className="text-muted">ID: {sale.counterparty}</span>
                     )}
                   </td>
-                  <td className="text-end">{formatCurrency(quotation.totalAmount)}</td>
-                  <td>{renderStatusDropdown(quotation)}</td>
+                  <td className="text-end">{formatSaleAmount(sale.totalAmount)}</td>
+                  <td>{renderStatusDropdown(sale)}</td>
                   <td className="text-center">
-                    {renderActionButtons(quotation)}
+                    {renderActionButtons(sale)}
                   </td>
                 </tr>
               ))}

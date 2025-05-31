@@ -1,7 +1,9 @@
+/* Estilos para el fondo de la página de ventas */
 .sales-page-container {
   position: relative;
-  z-index: 1;
-  min-height: calc(100vh - 60px);
+  z-index: 2;
+  min-height: 100vh;
+  padding: 2rem 0 2rem 0;
   width: 100%;
 }
 
@@ -17,7 +19,22 @@
   pointer-events: none;
 }
 
-.diamond-grid {
+/* Gradiente de fondo para ventas - Rosa/Magenta */
+.sales-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+      rgba(252, 157, 255, 0.1) 0%,
+      rgba(252, 157, 255, 0.05) 50%,
+      rgba(252, 157, 255, 0.02) 100%);
+  z-index: -1;
+}
+
+.sale-grid {
   display: grid;
   grid-template-columns: repeat(30, 1fr);
   grid-template-rows: repeat(30, 1fr);
@@ -30,90 +47,118 @@
 
 /* Versión móvil - mayor densidad de iconos */
 @media (max-width: 768px) {
-  .diamond-grid {
+  .sale-grid {
     width: 500%;
     height: 500%;
   }
 }
 
-.diamond-point {
+.sale-point {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #099347;
+  color: #2A7A9B;
   font-size: 30px;
 }
 
-.diamond-point {
+/* Ocultar todos los elementos por defecto */
+.sale-point {
   visibility: hidden;
 }
 
-.diamond-grid>.diamond-point:nth-child(60n+2),
-.diamond-grid>.diamond-point:nth-child(60n+4),
-.diamond-grid>.diamond-point:nth-child(60n+6),
-.diamond-grid>.diamond-point:nth-child(60n+8),
-.diamond-grid>.diamond-point:nth-child(60n+10),
-.diamond-grid>.diamond-point:nth-child(60n+12),
-.diamond-grid>.diamond-point:nth-child(60n+14),
-.diamond-grid>.diamond-point:nth-child(60n+16),
-.diamond-grid>.diamond-point:nth-child(60n+18),
-.diamond-grid>.diamond-point:nth-child(60n+20),
-.diamond-grid>.diamond-point:nth-child(60n+22),
-.diamond-grid>.diamond-point:nth-child(60n+24),
-.diamond-grid>.diamond-point:nth-child(60n+26),
-.diamond-grid>.diamond-point:nth-child(60n+28),
-.diamond-grid>.diamond-point:nth-child(60n+30) {
+/* Mostrar solo los elementos en posiciones pares en filas pares (comenzando desde 0) */
+.sale-grid>.sale-point:nth-child(60n+2),
+.sale-grid>.sale-point:nth-child(60n+4),
+.sale-grid>.sale-point:nth-child(60n+6),
+.sale-grid>.sale-point:nth-child(60n+8),
+.sale-grid>.sale-point:nth-child(60n+10),
+.sale-grid>.sale-point:nth-child(60n+12),
+.sale-grid>.sale-point:nth-child(60n+14),
+.sale-grid>.sale-point:nth-child(60n+16),
+.sale-grid>.sale-point:nth-child(60n+18),
+.sale-grid>.sale-point:nth-child(60n+20),
+.sale-grid>.sale-point:nth-child(60n+22),
+.sale-grid>.sale-point:nth-child(60n+24),
+.sale-grid>.sale-point:nth-child(60n+26),
+.sale-grid>.sale-point:nth-child(60n+28),
+.sale-grid>.sale-point:nth-child(60n+30) {
   visibility: visible;
 }
 
-.diamond-grid>.diamond-point:nth-child(60n+31),
-.diamond-grid>.diamond-point:nth-child(60n+33),
-.diamond-grid>.diamond-point:nth-child(60n+35),
-.diamond-grid>.diamond-point:nth-child(60n+37),
-.diamond-grid>.diamond-point:nth-child(60n+39),
-.diamond-grid>.diamond-point:nth-child(60n+41),
-.diamond-grid>.diamond-point:nth-child(60n+43),
-.diamond-grid>.diamond-point:nth-child(60n+45),
-.diamond-grid>.diamond-point:nth-child(60n+47),
-.diamond-grid>.diamond-point:nth-child(60n+49),
-.diamond-grid>.diamond-point:nth-child(60n+51),
-.diamond-grid>.diamond-point:nth-child(60n+53),
-.diamond-grid>.diamond-point:nth-child(60n+55),
-.diamond-grid>.diamond-point:nth-child(60n+57),
-.diamond-grid>.diamond-point:nth-child(60n+59) {
+/* Mostrar solo los elementos en posiciones impares en filas impares */
+.sale-grid>.sale-point:nth-child(60n+31),
+.sale-grid>.sale-point:nth-child(60n+33),
+.sale-grid>.sale-point:nth-child(60n+35),
+.sale-grid>.sale-point:nth-child(60n+37),
+.sale-grid>.sale-point:nth-child(60n+39),
+.sale-grid>.sale-point:nth-child(60n+41),
+.sale-grid>.sale-point:nth-child(60n+43),
+.sale-grid>.sale-point:nth-child(60n+45),
+.sale-grid>.sale-point:nth-child(60n+47),
+.sale-grid>.sale-point:nth-child(60n+49),
+.sale-grid>.sale-point:nth-child(60n+51),
+.sale-grid>.sale-point:nth-child(60n+53),
+.sale-grid>.sale-point:nth-child(60n+55),
+.sale-grid>.sale-point:nth-child(60n+57),
+.sale-grid>.sale-point:nth-child(60n+59) {
   visibility: visible;
 }
 
-.diamond-point:nth-child(3n+1) img {
+.sale-point:nth-child(3n+1) img {
   transform: rotate(-45deg);
 }
 
-.diamond-point:nth-child(3n+2) img {
+.sale-point:nth-child(3n+2) img {
   transform: rotate(15deg);
 }
 
-.diamond-point:nth-child(3n+3) img {
+.sale-point:nth-child(3n+3) img {
   transform: rotate(-75deg);
 }
 
-.diamond-point:nth-child(5n) img {
+.sale-point:nth-child(5n) img {
   opacity: 0.7;
 }
 
-.diamond-point:nth-child(4n) img {
+.sale-point:nth-child(4n) img {
   width: 24px !important;
   height: 24px !important;
 }
 
-.diamond-point:nth-child(7n) img {
+.sale-point:nth-child(7n) img {
   width: 18px !important;
   height: 18px !important;
 }
 
-.diamond-point:nth-child(11n) {
-  color: #0cbb5a;
+.sale-point:nth-child(11n) {
+  color: #3D95BB;
 }
 
-.diamond-point:nth-child(13n) {
-  color: #077435;
+.sale-point:nth-child(13n) {
+  color: #1A5A76;
+}
+
+/* Asegurar que los dropdowns de estado se vean completamente */
+.sales-page-container .dropdown {
+  position: static;
+}
+
+.sales-page-container .dropdown-menu {
+  z-index: 1050 !important;
+  position: absolute !important;
+}
+
+/* En móvil, mantener el overflow para scroll horizontal */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* En desktop, permitir que los dropdowns se salgan */
+@media (min-width: 769px) {
+  .table-responsive {
+    overflow: visible !important;
+  }
 }

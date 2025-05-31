@@ -6,7 +6,8 @@ import {
   deleteQuotation,
   updateQuotationStatus,
   createQuotation,
-  updateQuotation
+  updateQuotation,
+  convertQuotationToSale
 } from '../services/quotationService';
 import {
   Quotation,
@@ -163,11 +164,42 @@ export default function Quotations() {
   const handleStatusChange = async (quotation: Quotation, newStatus: QuotationStatus) => {
     setLoading(true);
     try {
-      await updateQuotationStatus(quotation._id, newStatus);
+      if (newStatus === 'converted') {
+        const result = await convertQuotationToSale(quotation._id);
+
+        // Mostrar notificación de éxito
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.innerHTML = `
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <strong>¡Conversión exitosa!</strong> 
+          Venta ${result.data.documentNumber} creada correctamente.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+          alert.remove();
+        }, 5000);
+
+        console.log('✅ Cotización convertida a venta:', result.data);
+      } else {
+        await updateQuotationStatus(quotation._id, newStatus);
+      }
+
       loadQuotations(); // Recargar la lista
     } catch (err) {
       console.error('Error al cambiar estado:', err);
-      setError('No se pudo cambiar el estado de la cotización. Por favor, intente nuevamente.');
+
+      if (newStatus === 'converted') {
+        setError('No se pudo convertir la cotización a venta. Por favor, intente nuevamente.');
+      } else {
+        setError('No se pudo cambiar el estado de la cotización. Por favor, intente nuevamente.');
+      }
     } finally {
       setLoading(false);
     }

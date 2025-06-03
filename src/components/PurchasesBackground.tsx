@@ -10,8 +10,8 @@ import bagSvg from '../assets/images/backgrounds/bag.svg';
 const PurchasesBackground: React.FC = () => {
   return (
     <IconBackground
-      svgPath={bagSvg}          // Usamos el icono de bolsa para compras (mismo que en Sidebar)
-      baseColor="#caffbf"       // Color naranjo oscuro para la sección de compras
+      svgPath={bagSvg}                 // Usamos el icono de bag para compras
+      baseColor="#4f7e84"          // Color rosa/magenta para la sección de compras (mismo que ventas)
     />
   );
 };

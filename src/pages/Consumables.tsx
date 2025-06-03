@@ -344,70 +344,74 @@ export default function Consumables() {
                 No hay insumos disponibles.
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                        Nombre
-                        <i className={`bi ms-1 ${sortField === 'name'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
-                        Descripción
-                        <i className={`bi ms-1 ${sortField === 'description'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-end" onClick={() => handleSort('netPrice')} style={{ cursor: 'pointer' }}>
-                        Precio
-                        <i className={`bi ms-1 ${sortField === 'netPrice'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-center" onClick={() => handleSort('stock')} style={{ cursor: 'pointer' }}>
-                        Stock
-                        <i className={`bi ms-1 ${sortField === 'stock'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getSortedConsumables().map(consumable => (
-                      <tr key={consumable._id}>
-                        <td>{consumable.name}</td>
-                        <td>{consumable.description}</td>
-                        <td className="text-end">{formatPrice(consumable.netPrice)}</td>
-                        <td className="text-center">
-                          <span className={`badge ${consumable.stock === 0 ? 'bg-danger' : (consumable.stock ? 'bg-success' : 'bg-secondary')}`}>
-                            {consumable.stock !== null ? consumable.stock : ''}
-                          </span>
-                        </td>
-                        <td className="text-center">
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openModal('edit', consumable)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => openModal('delete', consumable)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover table-striped">
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                            Nombre
+                            <i className={`bi ms-1 ${sortField === 'name'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
+                            Descripción
+                            <i className={`bi ms-1 ${sortField === 'description'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-end" onClick={() => handleSort('netPrice')} style={{ cursor: 'pointer' }}>
+                            Precio
+                            <i className={`bi ms-1 ${sortField === 'netPrice'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-center" onClick={() => handleSort('stock')} style={{ cursor: 'pointer' }}>
+                            Stock
+                            <i className={`bi ms-1 ${sortField === 'stock'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getSortedConsumables().map(consumable => (
+                          <tr key={consumable._id}>
+                            <td>{consumable.name}</td>
+                            <td>{consumable.description}</td>
+                            <td className="text-end">{formatPrice(consumable.netPrice)}</td>
+                            <td className="text-center">
+                              <span className={`badge ${consumable.stock === 0 ? 'bg-danger' : (consumable.stock ? 'bg-success' : 'bg-secondary')}`}>
+                                {consumable.stock !== null ? consumable.stock : ''}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => openModal('edit', consumable)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => openModal('delete', consumable)}
+                                  title="Eliminar"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </>

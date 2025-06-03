@@ -232,82 +232,86 @@ export default function Clients() {
                 {searchTerm ? "No se encontraron compradores con ese criterio de búsqueda." : "No hay compradores disponibles."}
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                        Nombre
-                        <i className={`bi ms-1 ${sortField === 'name'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
-                        RUT
-                        <i className={`bi ms-1 ${sortField === 'rut'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
-                        Email
-                        <i className={`bi ms-1 ${sortField === 'email'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th>Teléfono</th>
-                      <th>Dirección</th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getSortedClients().map(client => (
-                      <tr key={client._id}>
-                        <td>
-                          {client.needsReview && (
-                            <i className="bi bi-exclamation-triangle-fill"
-                              style={{
-                                color: '#ffc107'
-                              }}
-                              title="Requiere revisión"></i>
-                          )}
-                          {client.isSupplier && (
-                            <i className="bi bi-box-seam-fill"
-                              style={{ color: '#099347' }}
-                              title="También es Proveedor"></i>
-                          )} {client.name}</td>
-                        <td>{formatRut(client.rut)}</td>
-                        <td>{client.email}</td>
-                        <td>{client.phone ? formatPhone(client.phone) : '-'}</td>
-                        <td>{client.address || '-'}</td>
-                        <td className="text-center">
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-success"
-                              onClick={() => navigate(`/comprador/${client._id}`)}
-                              title="Ver detalle"
-                            >
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openModal('edit', client)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => openModal('delete', client)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover table-striped">
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                            Nombre
+                            <i className={`bi ms-1 ${sortField === 'name'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
+                            RUT
+                            <i className={`bi ms-1 ${sortField === 'rut'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
+                            Email
+                            <i className={`bi ms-1 ${sortField === 'email'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th>Teléfono</th>
+                          <th>Dirección</th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getSortedClients().map(client => (
+                          <tr key={client._id}>
+                            <td>
+                              {client.needsReview && (
+                                <i className="bi bi-exclamation-triangle-fill"
+                                  style={{
+                                    color: '#ffc107'
+                                  }}
+                                  title="Requiere revisión"></i>
+                              )}
+                              {client.isSupplier && (
+                                <i className="bi bi-box-seam-fill"
+                                  style={{ color: '#099347' }}
+                                  title="También es Proveedor"></i>
+                              )} {client.name}</td>
+                            <td>{formatRut(client.rut)}</td>
+                            <td>{client.email}</td>
+                            <td>{client.phone ? formatPhone(client.phone) : '-'}</td>
+                            <td>{client.address || '-'}</td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button
+                                  className="btn btn-sm btn-outline-success"
+                                  onClick={() => navigate(`/comprador/${client._id}`)}
+                                  title="Ver detalle"
+                                >
+                                  <i className="bi bi-eye"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => openModal('edit', client)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => openModal('delete', client)}
+                                  title="Eliminar"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </>

@@ -31,246 +31,301 @@ const formatRUT = (rut: string): string => {
   return `${formattedNumber}-${dv}`;
 };
 
-// Función para traducir estado
-const translateStatus = (status: string): string => {
-  const statusMap: { [key: string]: string } = {
-    'pending': 'Pendiente',
-    'approved': 'Aprobada',
-    'rejected': 'Rechazada',
-    'converted': 'Convertida'
-  };
-  return statusMap[status] || status;
-};
-
+/**
+ * ✨ Versión alternativa del generador de PDF con diseño profesional
+ * Inspirado en recibos modernos como el de Starlink
+ */
 export const generateQuotationPDF = (quotation: Quotation): void => {
   const doc = new jsPDF();
-  let yPosition = 20;
 
-  // Configurar fuente
-  doc.setFont('helvetica');
+  // Colores corporativos (definidos como tuplas)
+  const primaryGreen: [number, number, number] = [9, 147, 71];
+  const lightGray: [number, number, number] = [245, 248, 245];
+  const darkGray: [number, number, number] = [64, 64, 64];
+  const lightBorder: [number, number, number] = [220, 220, 220];
 
-  // Header - Título
-  doc.setFontSize(20);
-  doc.setTextColor(9, 147, 71); // Color verde de Fungus
-  doc.text('Fungus Mycelium', 20, yPosition);
+  let yPosition = 25;
 
-  doc.setFontSize(16);
-  doc.setTextColor(0, 0, 0);
-  yPosition += 10;
-  doc.text(`Cotización ${quotation.documentNumber}`, 20, yPosition);
+  // ========== HEADER SECTION ==========
 
-  // Tipo de documento con negrita
-  yPosition += 15;
-  doc.setFontSize(10);
-  const docType = quotation.documentType === 'boleta' ? 'BOLETA' : 'FACTURA';
+  // Título principal - FUNGUS MYCELIUM
   doc.setFont('helvetica', 'bold');
-  doc.text('Tipo:', 150, yPosition);
+  doc.setFontSize(24);
+  doc.setTextColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
+  doc.text('FUNGUS MYCELIUM', 20, yPosition);
+
+  // Subtítulo - Cotización
+  yPosition += 15;
+  doc.setFontSize(18);
+  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+  doc.text('Cotización', 20, yPosition);
+
+  // Número de documento en la esquina superior derecha
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
+  doc.text(quotation.documentNumber, 190, 25, { align: 'right' });
+
+  // Línea separadora bajo el header
+  yPosition += 10;
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.setLineWidth(0.5);
+  doc.line(20, yPosition, 190, yPosition);
+
+  // ========== INFO BOXES SECTION ==========
+  yPosition += 12; // Reducido de 15
+
+  // Configurar cajas de información lado a lado
+  const leftBoxX = 20;
+  const rightBoxX = 110;
+  const boxWidth = 80;
+  const boxHeight = 38; // Aumentado de 35 para más aire
+
+  // Caja izquierda - Información del documento
+  doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+  doc.rect(leftBoxX, yPosition, boxWidth, boxHeight, 'F');
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.rect(leftBoxX, yPosition, boxWidth, boxHeight, 'S');
+
+  // Header de la caja izquierda
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
+  doc.text('Información del Documento', leftBoxX + 5, yPosition + 8);
+
+  // Contenido de la caja izquierda (sin estado ni correlativo)
   doc.setFont('helvetica', 'normal');
-  doc.text(docType, 165, yPosition);
+  doc.setFontSize(9);
+  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
 
-  // Información general y Cliente usando tabla invisible para mejor alineación
-  yPosition += 20;
-  doc.setFontSize(14);
-  doc.setTextColor(9, 147, 71);
-  doc.text('Información General', 20, yPosition);
-  doc.text('Cliente', 110, yPosition);
-
-  // Definir datos para las tablas invisibles
-  const generalData = [
+  let leftContentY = yPosition + 16;
+  const leftData = [
     ['Fecha:', formatDate(quotation.date)],
     ...(quotation.validUntil ? [['Válido hasta:', formatDate(quotation.validUntil)]] : []),
-    ['Estado:', translateStatus(quotation.status)],
-    ['Correlativo:', quotation.correlative.toString()],
-    ['Vendedor:', typeof quotation.user === 'object' ? quotation.user.name : quotation.user]
+    ['Tipo:', quotation.documentType === 'boleta' ? 'BOLETA' : 'FACTURA']
   ];
 
-  const clientData = [];
+  leftData.forEach((row) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(row[0], leftBoxX + 5, leftContentY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(row[1], leftBoxX + 25, leftContentY);
+    leftContentY += 6;
+  });
+
+  // Caja derecha - Información del cliente
+  doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+  doc.rect(rightBoxX, yPosition, boxWidth, boxHeight, 'F');
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.rect(rightBoxX, yPosition, boxWidth, boxHeight, 'S');
+
+  // Header de la caja derecha
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
+  doc.text('Cliente', rightBoxX + 5, yPosition + 8);
+
+  // Contenido de la caja derecha
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+
+  let rightContentY = yPosition + 16;
+  const rightData = [];
+
   if (typeof quotation.counterparty === 'object') {
-    clientData.push(['Nombre:', quotation.counterparty.name]);
-    if (quotation.counterparty.rut) clientData.push(['RUT:', formatRUT(quotation.counterparty.rut)]);
-    if (quotation.counterparty.email) clientData.push(['Email:', quotation.counterparty.email]);
-    if (quotation.counterparty.phone) clientData.push(['Teléfono:', quotation.counterparty.phone]);
-    if (quotation.counterparty.address) {
-      // Manejo especial para direcciones largas
-      const addressLines = doc.splitTextToSize(quotation.counterparty.address, 40);
-      clientData.push(['Dirección:', addressLines]);
-    }
+    rightData.push(['Nombre:', quotation.counterparty.name]);
+    if (quotation.counterparty.rut) rightData.push(['RUT:', formatRUT(quotation.counterparty.rut)]);
+    if (quotation.counterparty.email) rightData.push(['Email:', quotation.counterparty.email]);
+    if (quotation.counterparty.phone) rightData.push(['Teléfono:', quotation.counterparty.phone]);
   } else {
-    clientData.push(['ID Cliente:', quotation.counterparty]);
+    rightData.push(['ID Cliente:', quotation.counterparty]);
   }
 
-  // Renderizar tabla invisible para Información General (columna izquierda)
-  yPosition += 8;
-  let currentY = yPosition;
-  doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
-
-  generalData.forEach((row) => {
+  rightData.forEach((row) => {
     doc.setFont('helvetica', 'bold');
-    doc.text(row[0], 20, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(row[1], 65, currentY);
-    currentY += 5;
-  });
-
-  // Renderizar tabla invisible para Cliente (columna derecha)
-  currentY = yPosition;
-  clientData.forEach((row) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(row[0], 110, currentY);
+    doc.text(row[0], rightBoxX + 5, rightContentY);
     doc.setFont('helvetica', 'normal');
 
-    // Si es dirección y tiene múltiples líneas
-    if (Array.isArray(row[1])) {
-      row[1].forEach((line, index) => {
-        doc.text(line, 150, currentY + (index * 4));
-      });
-      currentY += (row[1].length - 1) * 4; // Ajustar espacio para líneas adicionales
+    // Manejar texto largo (especialmente email)
+    const maxWidth = 45;
+    const text = row[1];
+    if (doc.getTextWidth(text) > maxWidth) {
+      const splitText = doc.splitTextToSize(text, maxWidth);
+      doc.text(splitText, rightBoxX + 25, rightContentY);
+      if (Array.isArray(splitText) && splitText.length > 1) {
+        rightContentY += 4; // Espacio extra si el texto se divide
+      }
     } else {
-      doc.text(row[1], 150, currentY);
+      doc.text(text, rightBoxX + 25, rightContentY);
     }
-    currentY += 5;
+    rightContentY += 6;
   });
 
-  // Calcular la nueva posición Y basada en la tabla más larga
-  yPosition = Math.max(yPosition + (generalData.length * 5), currentY) + 12;
+  yPosition += boxHeight + 18; // Aumentado de 15 para más aire debajo de las cajas
 
-  // Observaciones antes del detalle de productos (si existen)
+  // ========== OBSERVACIONES SECTION (si existen) ==========
   if (quotation.observations) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(14);
-    doc.setTextColor(9, 147, 71);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
     doc.text('Observaciones', 20, yPosition);
 
-    yPosition += 10;
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
+    yPosition += 8;
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11); // Aumentado de 9
+    doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
 
-    // Dividir observaciones en líneas si es muy largo
-    const splitObservations = doc.splitTextToSize(quotation.observations, 170);
-    doc.text(splitObservations, 20, yPosition);
-
-    // Calcular espacio usado por observaciones
-    const observationsLines = Array.isArray(splitObservations) ? splitObservations.length : 1;
-    yPosition += (observationsLines * 5) + 15;
+    const obsLines = doc.splitTextToSize(quotation.observations, 170);
+    doc.text(obsLines, 20, yPosition);
+    yPosition += (Array.isArray(obsLines) ? obsLines.length * 5 : 5) + 12; // Reducido de 15
   }
 
-  // Detalle de productos
-  doc.setFontSize(14);
-  doc.setTextColor(9, 147, 71);
-  doc.text('Detalle de Productos', 20, yPosition);
+  // ========== TABLA DE PRODUCTOS ==========
 
-  // Cabecera de la tabla con mejor espaciado
-  yPosition += 15;
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
+  // Header de la tabla con color de fondo - mismas columnas que PDF original
   doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255); // Texto blanco
 
-  // Línea de separación superior
-  doc.line(20, yPosition - 3, 190, yPosition - 3);
+  // Fondo verde para la cabecera - ancho completo del contenido
+  doc.setFillColor(primaryGreen[0], primaryGreen[1], primaryGreen[2]);
+  doc.rect(20, yPosition - 2, 170, 10, 'F');
 
-  // Fondo para cabecera
-  doc.setFillColor(240, 240, 240);
-  doc.rect(20, yPosition - 3, 170, 8, 'F');
+  // Cabeceras de columnas con mejor distribución
+  doc.text('Producto', 22, yPosition + 4);
+  doc.text('Cant.', 95, yPosition + 4, { align: 'center' });
+  doc.text('Precio Unit.', 120, yPosition + 4, { align: 'center' });
+  doc.text('Descuento', 145, yPosition + 4, { align: 'center' });
+  doc.text('Subtotal', 188, yPosition + 4, { align: 'right' });
 
-  // Nuevas posiciones para mejor distribución
-  doc.text('Producto', 22, yPosition + 2);
-  doc.text('Cant.', 100, yPosition + 2, { align: 'center' });
-  doc.text('Precio Unit.', 120, yPosition + 2);
-  doc.text('Descuento', 145, yPosition + 2);
-  doc.text('Subtotal', 170, yPosition + 2);
+  yPosition += 10;
 
-  yPosition += 8;
-  doc.line(20, yPosition - 3, 190, yPosition - 3);
-
-  // Items con filas alternadas
+  // Items de la tabla con filas alternadas
   quotation.items.forEach((item, index) => {
-    yPosition += 12;
-
-    // Verificar si necesitamos nueva página
-    if (yPosition > 270) {
+    // Verificar espacio en la página
+    if (yPosition > 250) {
       doc.addPage();
-      yPosition = 20;
+      yPosition = 25;
     }
 
-    // Fondo alternado para filas
-    if (index % 2 === 0) {
-      doc.setFillColor(250, 250, 250);
-      doc.rect(20, yPosition - 8, 170, 12, 'F');
+    // Fondo alternado para filas impares - ancho completo
+    if (index % 2 === 1) {
+      doc.setFillColor(248, 249, 250); // Gris muy claro
+      doc.rect(20, yPosition - 2, 170, 14, 'F');
     }
 
     const productName = typeof item.itemDetail === 'object' ? item.itemDetail.name : 'Producto';
     const productDescription = typeof item.itemDetail === 'object' ? item.itemDetail.description : '';
     const productDimensions = typeof item.itemDetail === 'object' ? item.itemDetail.dimensions : '';
 
-    // Nombre del producto (truncar si es muy largo)
-    const truncatedName = productName.length > 28 ? productName.substring(0, 25) + '...' : productName;
+    // Nombre del producto
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(truncatedName, 22, yPosition - 2);
+    doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+    doc.text(productName, 22, yPosition + 2);
 
-    // Agregar descripción y dimensiones en línea siguiente
-    if ((productDescription || productDimensions) && yPosition < 265) {
+    // Cantidad (centrada)
+    doc.text(item.quantity.toString(), 95, yPosition + 2, { align: 'center' });
+
+    // Precio unitario (centrado)
+    doc.text(formatCurrency(item.unitPrice), 120, yPosition + 2, { align: 'center' });
+
+    // Descuento (centrado)
+    doc.text(formatCurrency(item.discount), 145, yPosition + 2, { align: 'center' });
+
+    // Subtotal (alineado a la derecha)
+    doc.text(formatCurrency(item.subtotal), 188, yPosition + 2, { align: 'right' });
+
+    yPosition += 6;
+
+    // Descripción y dimensiones (si existen)
+    if (productDescription || productDimensions) {
       doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(120, 120, 120);
 
       let detailText = '';
       if (productDescription) {
-        detailText = productDescription.length > 28 ? productDescription.substring(0, 25) + '...' : productDescription;
+        detailText = productDescription;
       }
       if (productDimensions) {
         detailText += detailText ? ` (${productDimensions})` : `(${productDimensions})`;
       }
 
-      doc.text(detailText, 24, yPosition + 2);
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
+      const detailLines = doc.splitTextToSize(detailText, 70); // Reducido para que no interfiera con otras columnas
+      doc.text(detailLines, 24, yPosition);
+      yPosition += Array.isArray(detailLines) ? detailLines.length * 3 : 3;
     }
 
-    // Datos numéricos con mejor alineación
-    doc.text(item.quantity.toString(), 100, yPosition - 2, { align: 'center' });
-    doc.text(formatCurrency(item.unitPrice), 135, yPosition - 2, { align: 'right' });
-    doc.text(formatCurrency(item.discount), 160, yPosition - 2, { align: 'right' });
-    doc.text(formatCurrency(item.subtotal), 188, yPosition - 2, { align: 'right' });
+    yPosition += 4; // Espacio entre items
   });
 
-  // Totales con marco
-  yPosition += 15;
-  doc.line(20, yPosition - 3, 190, yPosition - 3);
+  // Línea separadora antes de totales
+  yPosition += 5;
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.line(20, yPosition, 190, yPosition);
 
-  // Marco para totales
-  doc.setDrawColor(200, 200, 200);
-  doc.setFillColor(248, 248, 248);
-  doc.rect(140, yPosition, 50, 24, 'FD');
+  // ========== TOTALES SECTION ==========
+  yPosition += 12; // Reducido de 15
 
-  yPosition += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Neto:', 142, yPosition);
+  // Crear caja para totales (como en la imagen de Starlink)
+  const totalsBoxX = 120;
+  const totalsBoxWidth = 70;
+  const totalsBoxHeight = 35;
+
+  doc.setFillColor(250, 250, 250);
+  doc.rect(totalsBoxX, yPosition, totalsBoxWidth, totalsBoxHeight, 'F');
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.rect(totalsBoxX, yPosition, totalsBoxWidth, totalsBoxHeight, 'S');
+
+  // Subtotal
+  let totalsY = yPosition + 8;
   doc.setFont('helvetica', 'normal');
-  doc.text(formatCurrency(quotation.netAmount), 188, yPosition, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+  doc.text('Subtotal', totalsBoxX + 5, totalsY);
+  doc.text(formatCurrency(quotation.netAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
 
-  yPosition += 6;
+  // IVA
+  totalsY += 7;
+  doc.text('IVA (19%)', totalsBoxX + 5, totalsY);
+  doc.text(formatCurrency(quotation.taxAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
+
+  // Línea separadora
+  totalsY += 5;
+  doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+  doc.line(totalsBoxX + 5, totalsY, totalsBoxX + totalsBoxWidth - 5, totalsY);
+
+  // Total final
+  totalsY += 8;
   doc.setFont('helvetica', 'bold');
-  doc.text('IVA (19%):', 142, yPosition);
-  doc.setFont('helvetica', 'normal');
-  doc.text(formatCurrency(quotation.taxAmount), 188, yPosition, { align: 'right' });
-
-  yPosition += 6;
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL:', 142, yPosition);
-  doc.text(formatCurrency(quotation.totalAmount), 188, yPosition, { align: 'right' });
+  doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+  doc.text('Total', totalsBoxX + 5, totalsY);
+  doc.text(formatCurrency(quotation.totalAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
 
-  // Footer
+  // ========== FOOTER SECTION ==========
+  yPosition = 270; // Posición fija para el footer
+
+  // Información de la empresa
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text('FUNGUS MYCELIUM SPA', 105, yPosition, { align: 'center' });
+
+  yPosition += 4;
+  doc.text('Especialistas en Hongos Medicinales', 105, yPosition, { align: 'center' });
+
+  yPosition += 4;
+  doc.text('www.fungusmycelium.cl', 105, yPosition, { align: 'center' });
+
+  // Numeración de páginas
   const pageCount = doc.internal.pages.length - 1;
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Página ${i} de ${pageCount}`, 20, 285);
-    doc.text('Generado por Fungus Mycelium', 140, 285);
+    doc.text(`Página ${i} de ${pageCount}`, 190, 285, { align: 'right' });
   }
 
   // Abrir en nueva pestaña

@@ -10,7 +10,7 @@ import Suppliers from './pages/Suppliers'
 import SupplierDetail from './pages/SupplierDetail'
 import Quotations from './pages/Quotations'
 import SalesPage from './pages/SalesPage'
-import Purchases from './pages/Purchases'
+import PurchasesPage from './pages/PurchasesPage'
 import Help from './pages/Help'
 import Logs from './pages/Logs'
 import NotFound from './pages/NotFound'
@@ -115,7 +115,7 @@ function App() {
           path="/compras"
           element={
             <ProtectedRoute>
-              <Purchases />
+              <PurchasesPage />
             </ProtectedRoute>
           }
         />

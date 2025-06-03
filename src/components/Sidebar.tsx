@@ -220,27 +220,17 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
               </li>
               <li className="nav-item">
                 <a
-                  className={isAdmin ? getLinkClasses('/compras') : `${getLinkClasses('/compras')} disabled`}
-                  style={isAdmin ? getItemStyle('/compras') : { ...getItemStyle('/compras'), opacity: 0.6, cursor: 'not-allowed' }}
+                  className={getLinkClasses('/compras')}
+                  style={getItemStyle('/compras')}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (isAdmin) {
-                      navigate('/compras');
-                      if (onClose) onClose();
-                    }
+                    navigate('/compras');
+                    if (onClose) onClose();
                   }}
                 >
                   <i className="bi bi-bag me-2"></i>
                   Compras
-                  {!isAdmin && (
-                    <span
-                      className="ms-2 badge"
-                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
-                    >
-                      Próximamente
-                    </span>
-                  )}
                 </a>
               </li>
               {/* Opción de logs solo visible para administradores */}

@@ -232,83 +232,87 @@ export default function Suppliers() {
                 {searchTerm ? "No se encontraron proveedores con ese criterio de búsqueda." : "No hay proveedores disponibles."}
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                        Nombre
-                        <i className={`bi ms-1 ${sortField === 'name'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
-                        RUT
-                        <i className={`bi ms-1 ${sortField === 'rut'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
-                        Email
-                        <i className={`bi ms-1 ${sortField === 'email'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th>Teléfono</th>
-                      <th>Dirección</th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getSortedSuppliers().map(supplier => (
-                      <tr key={supplier._id}>
-                        <td>
-                          {supplier.needsReview && (
-                            <i className="bi bi-exclamation-triangle-fill"
-                              style={{
-                                color: '#ffc107'
-                              }}
-                              title="Requiere revisión"></i>
-                          )}
-                          {supplier.isCustomer && (
-                            <i className="bi bi-people-fill"
-                              style={{ color: '#0d6efd' }}
-                              title="También es Comprador"></i>
-                          )} {supplier.name}
-                        </td>
-                        <td>{formatRut(supplier.rut)}</td>
-                        <td>{supplier.email}</td>
-                        <td>{supplier.phone ? formatPhone(supplier.phone) : '-'}</td>
-                        <td>{supplier.address || '-'}</td>
-                        <td className="text-center">
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-success"
-                              onClick={() => navigate(`/proveedor/${supplier._id}`)}
-                              title="Ver detalle"
-                            >
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openModal('edit', supplier)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => openModal('delete', supplier)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover table-striped">
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                            Nombre
+                            <i className={`bi ms-1 ${sortField === 'name'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
+                            RUT
+                            <i className={`bi ms-1 ${sortField === 'rut'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
+                            Email
+                            <i className={`bi ms-1 ${sortField === 'email'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th>Teléfono</th>
+                          <th>Dirección</th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getSortedSuppliers().map(supplier => (
+                          <tr key={supplier._id}>
+                            <td>
+                              {supplier.needsReview && (
+                                <i className="bi bi-exclamation-triangle-fill"
+                                  style={{
+                                    color: '#ffc107'
+                                  }}
+                                  title="Requiere revisión"></i>
+                              )}
+                              {supplier.isCustomer && (
+                                <i className="bi bi-people-fill"
+                                  style={{ color: '#0d6efd' }}
+                                  title="También es Comprador"></i>
+                              )} {supplier.name}
+                            </td>
+                            <td>{formatRut(supplier.rut)}</td>
+                            <td>{supplier.email}</td>
+                            <td>{supplier.phone ? formatPhone(supplier.phone) : '-'}</td>
+                            <td>{supplier.address || '-'}</td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button
+                                  className="btn btn-sm btn-outline-success"
+                                  onClick={() => navigate(`/proveedor/${supplier._id}`)}
+                                  title="Ver detalle"
+                                >
+                                  <i className="bi bi-eye"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => openModal('edit', supplier)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => openModal('delete', supplier)}
+                                  title="Eliminar"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </>

@@ -11,7 +11,7 @@ const SalesBackground: React.FC = () => {
   return (
     <IconBackground
       svgPath={cashCoinSvg}     // Usamos el icono de cash-coin para ventas (mismo que en Sidebar)
-      baseColor="#fc9dff"       // Color rosa/magenta para la sección de ventas (igual que cotizaciones)
+      baseColor="#592fa6"       // Color rosa/magenta para la sección de ventas (igual que cotizaciones)
     />
   );
 };

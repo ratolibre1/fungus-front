@@ -1,5 +1,6 @@
 import { Sale, SaleStatus, getSaleStatusLabel, getSaleStatusColor } from '../../types/sale';
 import { formatSaleAmount } from '../../services/saleService';
+import { generateClientLabelPDF } from '../PrintLabel';
 
 interface SaleDetailsModalProps {
   sale: Sale | null;
@@ -52,6 +53,18 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
   // Obtener nombre del usuario vendedor
   const getUserName = () => {
     return typeof sale.user === 'object' ? sale.user.name : sale.user;
+  };
+
+  // Función para manejar la generación del PDF de etiqueta del cliente
+  const handleGenerateClientPDF = () => {
+    if (typeof sale.counterparty === 'object') {
+      try {
+        generateClientLabelPDF(sale.counterparty as any);
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        alert('Error al generar el PDF. Por favor, intente nuevamente.');
+      }
+    }
   };
 
   return (
@@ -198,6 +211,16 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
               )}
             </div>
             <div className="modal-footer">
+              {typeof sale.counterparty === 'object' && (
+                <button
+                  type="button"
+                  className="btn btn-outline-primary me-2"
+                  onClick={handleGenerateClientPDF}
+                  title="Generar etiqueta del cliente"
+                >
+                  <i className="bi bi-printer me-1"></i> Imprimir Etiqueta
+                </button>
+              )}
               {onEdit && (
                 <button
                   type="button"

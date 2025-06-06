@@ -570,8 +570,8 @@ export default function ClientDetail() {
                             <h6 className="mb-3">Cliente</h6>
                             <p><strong>Nombre:</strong> {clientData.client.name}</p>
                             <p><strong>RUT:</strong> {formatRut(clientData.client.rut)}</p>
-                            {selectedTransaction.userDetails?.email && (
-                              <p><strong>Email:</strong> {selectedTransaction.userDetails.email}</p>
+                            {fullClientData?.email && (
+                              <p><strong>Email:</strong> {fullClientData.email}</p>
                             )}
                           </div>
                         </div>
@@ -637,6 +637,14 @@ export default function ClientDetail() {
                         )}
                       </div>
                       <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary me-2"
+                          onClick={handleGeneratePDF}
+                          title="Generar etiqueta del cliente"
+                        >
+                          <i className="bi bi-printer me-1"></i> Imprimir Etiqueta
+                        </button>
                         <button
                           type="button"
                           className="btn btn-secondary"

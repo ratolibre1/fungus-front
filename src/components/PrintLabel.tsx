@@ -1,7 +1,105 @@
 import React from 'react';
+import jsPDF from 'jspdf';
 import { Client } from '../types/client';
 import { formatRut, formatPhone } from '../utils/validators';
 
+/**
+ * Genera PDF de etiqueta directamente para un cliente
+ * Inspirado en el sistema de cotizaciones
+ */
+export const generateClientLabelPDF = (client: Client): void => {
+  // Crear PDF con dimensiones exactas de etiqueta: 85mm x 29mm
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: [85, 29] // width, height en mm
+  });
+
+  // Configurar colores
+  const darkColor: [number, number, number] = [33, 37, 41]; // Bootstrap dark
+  const primaryColor: [number, number, number] = [9, 147, 71]; // Verde fungus
+
+  // Configuraciones de layout más conservadoras
+  const leftMargin = 2;
+  const labelWidth = 17; // Ancho para las etiquetas
+  const contentStart = leftMargin + labelWidth;
+  const lineHeight = 3.4; // Espaciado más compacto
+  const totalHeight = 29; // Altura total disponible
+
+  // Pre-calcular el número de líneas que necesitará cada campo
+  const calculateLines = (text: string, maxWidth: number, fontSize: number): number => {
+    pdf.setFontSize(fontSize);
+    const textLines = pdf.splitTextToSize(text, maxWidth);
+    return Array.isArray(textLines) ? textLines.length : 1;
+  };
+
+  // Calcular líneas necesarias para cada campo con tamaños de fuente más pequeños
+  const direccionText = client.address || 'No especificada';
+  const telefonoText = client.phone ? formatPhone(client.phone) : 'No especificado';
+
+  const nombreLines = calculateLines(client.name, 62, 9); // Reducido de 11 a 9
+  const rutLines = calculateLines(formatRut(client.rut), 62, 8);
+  const direccionLines = calculateLines(direccionText, 62, 8);
+  const emailLines = calculateLines(client.email, 54, 8);
+  const telefonoLines = calculateLines(telefonoText, 62, 8);
+
+  // Calcular altura total necesaria
+  const totalLines = nombreLines + rutLines + direccionLines + emailLines + telefonoLines;
+  const extraSpaceForName = 0.3; // Reducido espacio extra
+  const totalContentHeight = (totalLines * lineHeight) + extraSpaceForName;
+
+  // Centrar verticalmente, pero asegurar que no se desborde
+  const calculatedStartY = (totalHeight - totalContentHeight) / 2;
+  const startY = Math.max(2, Math.min(calculatedStartY, totalHeight - totalContentHeight - 1)) + 1.5; // +1.5 para bajar un poco el texto
+  let yPosition = startY;
+
+  // Función helper para texto con múltiples líneas
+  const addMultiLineText = (label: string, text: string, maxWidth: number = 62, fontSize: number = 8, isBold: boolean = false): number => {
+    // Etiqueta en negrita y color
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(fontSize);
+    pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    pdf.text(label, leftMargin, yPosition);
+
+    // Contenido
+    pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+    pdf.setFontSize(fontSize);
+    pdf.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+
+    // Dividir texto en líneas si es necesario
+    const textLines = pdf.splitTextToSize(text, maxWidth);
+    const isArray = Array.isArray(textLines);
+
+    pdf.text(textLines, contentStart, yPosition);
+
+    // Retornar el número de líneas usadas
+    return isArray ? textLines.length : 1;
+  };
+
+  // Nombre (un poco más grande pero no tanto)
+  const nombreLinesUsed = addMultiLineText('Nombre:', client.name, 62, 9, true);
+  yPosition += (nombreLinesUsed * lineHeight) + extraSpaceForName;
+
+  // RUT
+  const rutLinesUsed = addMultiLineText('RUT:', formatRut(client.rut), 62, 8);
+  yPosition += rutLinesUsed * lineHeight;
+
+  // Dirección (puede ser multilinea)
+  const direccionLinesUsed = addMultiLineText('Dirección:', direccionText, 62, 8);
+  yPosition += direccionLinesUsed * lineHeight;
+
+  // Email (puede ser largo)
+  const emailLinesUsed = addMultiLineText('Email:', client.email, 54, 8);
+  yPosition += emailLinesUsed * lineHeight;
+
+  // Teléfono
+  addMultiLineText('Teléfono:', telefonoText, 62, 8);
+
+  // Abrir en nueva pestaña (igual que cotizaciones)
+  window.open(pdf.output('bloburl'), '_blank');
+};
+
+// Mantener el componente modal para compatibilidad hacia atrás (si se necesita)
 interface PrintLabelProps {
   client: Client;
   isOpen: boolean;
@@ -11,128 +109,15 @@ interface PrintLabelProps {
 const PrintLabel: React.FC<PrintLabelProps> = ({ client, isOpen, onClose }) => {
   if (!isOpen) return null;
 
-  const printLabel = () => {
-    // Añadir eventos de impresión para manejar el ciclo de vida
-    const beforePrint = () => {
-      console.log('Preparando impresión...');
-
-      // Ocultar todo excepto el contenido a imprimir
-      document.querySelectorAll('body > *:not(#printable-content)').forEach(el => {
-        (el as HTMLElement).style.display = 'none';
-      });
-
-      // Intentar configurar parámetros de impresión automáticamente
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'print-styles';
-      styleSheet.innerHTML = `
-        @page {
-          size: 85mm 29mm;
-          margin: 0 !important;
-        }
-        
-        body {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 85mm !important;
-          height: 29mm !important;
-          overflow: hidden !important;
-        }
-        
-        body * {
-          visibility: hidden !important;
-          display: none !important;
-        }
-        
-        #printable-content {
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          width: 85mm !important;
-          height: 29mm !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          overflow: visible !important;
-          visibility: visible !important;
-          display: block !important;
-          background-color: white !important;
-          border: none !important;
-        }
-        
-        #printable-content * {
-          visibility: visible !important;
-          display: revert !important;
-        }
-        
-        .label-preview {
-          width: 100% !important;
-          height: 100% !important;
-          padding: 1mm !important;
-          font-size: 6pt !important;
-          overflow: visible !important;
-        }
-      `;
-      document.head.appendChild(styleSheet);
-
-      // Preparar contenedor para impresión
-      const printContent = document.getElementById('printable-content');
-      if (printContent) {
-        // Eliminar cualquier otra copia del contenido que pueda existir
-        document.querySelectorAll('#printable-content').forEach((el, index) => {
-          if (index > 0) { // Mantener solo el primer elemento
-            el.remove();
-          }
-        });
-
-        // Posicionar y aplicar estilos al elemento de impresión
-        printContent.style.position = 'absolute';
-        printContent.style.top = '0';
-        printContent.style.left = '0';
-        printContent.style.width = '85mm';
-        printContent.style.height = '29mm';
-        printContent.style.margin = '0';
-        printContent.style.padding = '0';
-        printContent.style.backgroundColor = 'white';
-        printContent.style.border = 'none';
-        printContent.style.overflow = 'visible';
-        printContent.style.zIndex = '9999';
-      }
-    };
-
-    const afterPrint = () => {
-      console.log('Impresión terminada');
-
-      // Restaurar elementos ocultos
-      document.querySelectorAll('body > *:not(#printable-content)').forEach(el => {
-        (el as HTMLElement).style.display = '';
-      });
-
-      // Limpiar estilos específicos de impresión
-      const styleElement = document.getElementById('print-styles');
-      if (styleElement) {
-        document.head.removeChild(styleElement);
-      }
-
-      document.title = 'Datos de Contacto';
-    };
-
-    // Añadir escuchas de eventos
-    window.addEventListener('beforeprint', beforePrint);
-    window.addEventListener('afterprint', afterPrint);
-
-    // Iniciar impresión
-    document.title = `Etiqueta - ${client.name}`;
-
-    // Forzar repintado del DOM antes de imprimir
-    setTimeout(() => {
-      window.print();
-    }, 200);
-
-    // Limpiar escuchas cuando se complete
-    setTimeout(() => {
-      window.removeEventListener('beforeprint', beforePrint);
-      window.removeEventListener('afterprint', afterPrint);
-      document.title = 'Fungus Mycelium';
-    }, 1000);
+  const handleGeneratePDF = () => {
+    try {
+      generateClientLabelPDF(client);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    }
+    // Cerrar modal automáticamente
+    onClose();
   };
 
   return (
@@ -140,7 +125,7 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ client, isOpen, onClose }) => {
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Vista previa de etiqueta (29mm)</h5>
+            <h5 className="modal-title">Generar etiqueta PDF</h5>
             <button
               type="button"
               className="btn-close"
@@ -148,52 +133,12 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ client, isOpen, onClose }) => {
               aria-label="Close"
             ></button>
           </div>
-          <div className="modal-body d-flex justify-content-center align-items-center p-4">
-            <div id="printable-content" style={{
-              width: '85mm',
-              height: '29mm',
-              margin: '0 auto',
-              padding: 0,
-              border: '1px solid #ddd',
-              boxSizing: 'border-box',
-              overflow: 'hidden',
-              backgroundColor: 'white'
-            }}>
-              <div className="label-preview" style={{
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-                padding: '1mm',
-                fontSize: '6pt'
-              }}>
-                <div className="label-data">
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '6.5pt' }}>
-                    <tbody>
-                      <tr>
-                        <td style={{ whiteSpace: 'nowrap', paddingRight: '2mm', fontWeight: 'bold', width: '18%' }}>Nombre:</td>
-                        <td style={{ width: '82%', paddingBottom: '1mm' }}>{client.name}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ whiteSpace: 'nowrap', paddingRight: '2mm', fontWeight: 'bold', paddingBottom: '1.5mm' }}>Rut:</td>
-                        <td style={{ paddingBottom: '1mm' }}>{formatRut(client.rut)}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ whiteSpace: 'nowrap', paddingRight: '2mm', fontWeight: 'bold', paddingBottom: '1.5mm' }}>Dir:</td>
-                        <td style={{ paddingBottom: '1mm' }}>{client.address || '-'}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ whiteSpace: 'nowrap', paddingRight: '2mm', fontWeight: 'bold', paddingBottom: '1.5mm' }}>Email:</td>
-                        <td style={{ paddingBottom: '1mm' }}>{client.email}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ whiteSpace: 'nowrap', paddingRight: '2mm', fontWeight: 'bold' }}>Tel:</td>
-                        <td>{client.phone ? formatPhone(client.phone) : '-'}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+          <div className="modal-body text-center">
+            <i className="bi bi-file-earmark-pdf-fill text-danger" style={{ fontSize: '3rem' }}></i>
+            <h6 className="mt-3 mb-3">Etiqueta para {client.name}</h6>
+            <p className="text-muted">
+              Se generará un PDF con dimensiones 85mm x 29mm optimizado para impresoras de etiquetas.
+            </p>
           </div>
           <div className="modal-footer">
             <button
@@ -206,127 +151,13 @@ const PrintLabel: React.FC<PrintLabelProps> = ({ client, isOpen, onClose }) => {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={printLabel}
+              onClick={handleGeneratePDF}
             >
-              <i className="bi bi-printer me-1"></i> Imprimir etiqueta
+              <i className="bi bi-file-earmark-pdf me-1"></i> Generar PDF
             </button>
           </div>
         </div>
       </div>
-
-      <style>
-        {`
-    @media print {
-      * {
-        margin: 0 !important;
-        padding: 0 !important;
-        -webkit-box-sizing: border-box !important;
-        box-sizing: border-box !important;
-      }
-      
-      @page {
-        size: 85mm 29mm;
-        margin: 0 !important;
-      }
-      
-      html, body {
-        width: 85mm;
-        height: 29mm;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-        
-      body * {
-        visibility: hidden;
-        display: none;
-      }
-      
-      #printable-content {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 85mm !important;
-        height: 29mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        overflow: visible !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        visibility: visible !important;
-        display: block !important;
-        z-index: 9999 !important;
-        transform: none !important;
-        background-color: white !important;
-      }
-      
-      #printable-content * {
-        visibility: visible !important;
-        display: revert !important;
-      }
-      
-      .label-preview {
-        border: none !important;
-        padding: 1mm !important;
-        width: 100% !important;
-        height: 100% !important;
-        overflow: visible !important;
-        font-size: 6pt !important;
-        position: relative !important;
-        top: 0 !important;
-        left: 0 !important;
-        transform: none !important;
-      }
-      
-      .modal, .modal-dialog, .modal-content, .modal-body {
-        display: none !important;
-        visibility: hidden !important;
-      }
-      
-      .print-hide {
-        display: none !important;
-      }
-      
-      .label-preview p {
-        margin: 1mm 0 !important;
-        line-height: 1.2 !important;
-        font-size: 6pt !important;
-      }
-      
-      .label-preview strong {
-        font-weight: bold !important;
-      }
-      
-      .label-preview table {
-        width: 100% !important;
-        font-size: 6pt !important;
-        border-collapse: collapse !important;
-      }
-      
-      .label-preview td {
-        padding: 0.7mm 0 !important;
-        line-height: 1.2 !important;
-      }
-      
-      .label-preview td:first-child {
-        padding-right: 3mm !important;
-        width: 18% !important;
-      }
-      
-      .label-preview td:last-child {
-        width: 82% !important;
-      }
-    }
-
-    /* Estilos para que la vista previa simule exactamente lo que saldrá impreso */
-    .label-preview {
-      transform-origin: top left;
-      border: 1px solid #ddd !important;
-      overflow: hidden;
-    }
-  `}
-      </style>
     </div>
   );
 };

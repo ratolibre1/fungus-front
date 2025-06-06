@@ -31,6 +31,15 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
       return true;
     }
 
+    // Casos especiales para compradores y proveedores
+    if (path === '/compradores') {
+      return location.pathname === '/compradores' || location.pathname.startsWith('/comprador/');
+    }
+
+    if (path === '/proveedores') {
+      return location.pathname === '/proveedores' || location.pathname.startsWith('/proveedor/');
+    }
+
     // Para las demás rutas, verificamos si el pathname comienza con la ruta
     // esto permite que las páginas de detalle también marquen la sección correcta
     if (path !== '/panel') {
@@ -170,52 +179,32 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
               </li>
               <li className="nav-item">
                 <a
-                  className={isAdmin ? getLinkClasses('/cotizaciones') : `${getLinkClasses('/cotizaciones')} disabled`}
-                  style={isAdmin ? getItemStyle('/cotizaciones') : { ...getItemStyle('/cotizaciones'), opacity: 0.6, cursor: 'not-allowed' }}
+                  className={getLinkClasses('/cotizaciones')}
+                  style={getItemStyle('/cotizaciones')}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (isAdmin) {
-                      navigate('/cotizaciones');
-                      if (onClose) onClose();
-                    }
+                    navigate('/cotizaciones');
+                    if (onClose) onClose();
                   }}
                 >
                   <i className="bi bi-file-earmark-text me-2"></i>
                   Cotizaciones
-                  {!isAdmin && (
-                    <span
-                      className="ms-2 badge"
-                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
-                    >
-                      Próximamente
-                    </span>
-                  )}
                 </a>
               </li>
               <li className="nav-item">
                 <a
-                  className={isAdmin ? getLinkClasses('/ventas') : `${getLinkClasses('/ventas')} disabled`}
-                  style={isAdmin ? getItemStyle('/ventas') : { ...getItemStyle('/ventas'), opacity: 0.6, cursor: 'not-allowed' }}
+                  className={getLinkClasses('/ventas')}
+                  style={getItemStyle('/ventas')}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (isAdmin) {
-                      navigate('/ventas');
-                      if (onClose) onClose();
-                    }
+                    navigate('/ventas');
+                    if (onClose) onClose();
                   }}
                 >
                   <i className="bi bi-cash-coin me-2"></i>
                   Ventas
-                  {!isAdmin && (
-                    <span
-                      className="ms-2 badge"
-                      style={{ backgroundColor: '#FFC107', color: 'black', fontSize: '0.7rem' }}
-                    >
-                      Próximamente
-                    </span>
-                  )}
                 </a>
               </li>
               <li className="nav-item">

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Purchase, PurchaseStatus, getPurchaseStatusLabel, getPurchaseStatusColor } from '../../types/purchase';
 import { formatPurchaseAmount } from '../../services/purchaseService';
 
@@ -199,18 +198,6 @@ export default function PurchaseDetailsModal({ purchase, onClose, onEdit }: Purc
               )}
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-success me-2"
-                onClick={() => {
-                  // TODO: Implementar generación de PDF para compras
-                  alert('Función de PDF pendiente de implementar');
-                }}
-                title="Generar PDF"
-              >
-                <i className="bi bi-file-earmark-pdf me-1"></i>
-                Generar PDF
-              </button>
               {onEdit && (
                 <button
                   type="button"

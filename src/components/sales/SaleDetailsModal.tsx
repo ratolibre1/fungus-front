@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sale, SaleStatus, getSaleStatusLabel, getSaleStatusColor } from '../../types/sale';
 import { formatSaleAmount } from '../../services/saleService';
 
@@ -199,18 +198,6 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
               )}
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-success me-2"
-                onClick={() => {
-                  // TODO: Implementar generación de PDF para ventas
-                  alert('Función de PDF pendiente de implementar');
-                }}
-                title="Generar PDF"
-              >
-                <i className="bi bi-file-earmark-pdf me-1"></i>
-                Generar PDF
-              </button>
               {onEdit && (
                 <button
                   type="button"

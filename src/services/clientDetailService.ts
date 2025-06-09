@@ -26,10 +26,10 @@ export const getClientTransactions = async (id: string, page: number = 1, limit:
 // Función legacy que combina métricas y transacciones para mantener compatibilidad
 export const getClientDetails = async (id: string): Promise<ClientDetailResponse> => {
   try {
-    // Obtener métricas y transacciones en paralelo
+    // Obtener métricas y transacciones en paralelo - SOLO ventas para clientes
     const [metricsResponse, transactionsResponse] = await Promise.all([
       getClientMetrics(id),
-      getClientTransactions(id, 1, 50) // Obtener más transacciones para el historial
+      getClientTransactions(id, 1, 50, 'sale') // Filtrar solo transacciones de VENTA
     ]);
 
     const metrics = metricsResponse.data;

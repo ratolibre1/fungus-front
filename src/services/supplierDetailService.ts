@@ -26,10 +26,10 @@ export const getSupplierTransactions = async (id: string, page: number = 1, limi
 // Función legacy que combina métricas y transacciones para mantener compatibilidad
 export const getSupplierDetails = async (id: string): Promise<SupplierDetailResponse> => {
   try {
-    // Obtener métricas y transacciones en paralelo
+    // Obtener métricas y transacciones en paralelo - SOLO compras para proveedores
     const [metricsResponse, transactionsResponse] = await Promise.all([
       getSupplierMetrics(id),
-      getSupplierTransactions(id, 1, 50) // Obtener más transacciones para el historial
+      getSupplierTransactions(id, 1, 50, 'purchase') // Filtrar solo transacciones de COMPRA
     ]);
 
     const metrics = metricsResponse.data;

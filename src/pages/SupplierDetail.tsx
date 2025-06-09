@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { getSupplierDetails, getSupplierTransactions } from '../services/supplierDetailService';
 import { updateSupplier, getSupplier } from '../services/supplierService';
+import { addCustomerRole, removeCustomerRole, removeSupplierRole } from '../services/roleService';
 import { SupplierDetailData, Purchase, Transaction } from '../types/supplierDetail';
 import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../types/supplier';
 import { formatRut } from '../utils/validators';
@@ -22,6 +23,12 @@ export default function SupplierDetail() {
   const [showPurchaseDetailModal, setShowPurchaseDetailModal] = useState<boolean>(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
+  // Estado para gestión de roles
+  const [showRoleConfirm, setShowRoleConfirm] = useState<{
+    type: 'add-customer' | 'remove-customer' | 'remove-supplier' | null;
+    show: boolean;
+  }>({ type: null, show: false });
+
   // Estado para ordenamiento de compras
   const [sortField, setSortField] = useState<keyof Purchase>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -38,7 +45,7 @@ export default function SupplierDetail() {
     try {
       const [detailResponse, transactionsResponse] = await Promise.all([
         getSupplierDetails(id),
-        getSupplierTransactions(id, 1, 50)
+        getSupplierTransactions(id, 1, 50, 'purchase')
       ]);
 
       setSupplierData(detailResponse.data);
@@ -193,6 +200,48 @@ export default function SupplierDetail() {
     }
   };
 
+  // Funciones para gestión de roles
+  const handleAddCustomerRole = async () => {
+    if (!id) return;
+
+    try {
+      await addCustomerRole(id);
+      await loadSupplierDetail(); // Recargar datos
+      setShowRoleConfirm({ type: null, show: false });
+    } catch (err) {
+      setError('Error al activar como comprador');
+    }
+  };
+
+  const handleRemoveCustomerRole = async () => {
+    if (!id) return;
+
+    try {
+      await removeCustomerRole(id);
+      await loadSupplierDetail(); // Recargar datos  
+      setShowRoleConfirm({ type: null, show: false });
+    } catch (err) {
+      setError('Error al quitar rol de comprador');
+    }
+  };
+
+  const handleRemoveSupplierRole = async () => {
+    if (!id) return;
+
+    try {
+      await removeSupplierRole(id);
+      // Redirigir a lista de proveedores ya que se quitó el rol
+      navigate('/proveedores');
+    } catch (err) {
+      setError('Error al quitar rol de proveedor');
+    }
+  };
+
+  // Función para mostrar confirmación
+  const showConfirmation = (type: 'add-customer' | 'remove-customer' | 'remove-supplier') => {
+    setShowRoleConfirm({ type, show: true });
+  };
+
   // Abrir modal de detalle de compra
   const openPurchaseDetailModal = (purchase: Purchase) => {
     setSelectedTransaction(transactions.find(t => t._id === purchase._id) || null);
@@ -251,7 +300,75 @@ export default function SupplierDetail() {
               <div className="card-body">
                 <div className="row">
                   <div className="col-md-8">
-                    <h2 className="mb-3">{supplierData.supplier.name} <span className="badge rounded-pill bg-success fs-6">Proveedor</span></h2>
+                    <h2 className="mb-3 d-flex align-items-center flex-wrap">
+                      {supplierData.supplier.name}
+                      <span className="badge rounded-pill bg-success fs-6 ms-2">Proveedor</span>
+                      {supplierData.isCustomer && (
+                        <span className="badge rounded-pill bg-primary fs-6 ms-2">Comprador</span>
+                      )}
+
+                      {/* Dropdown de gestión de roles */}
+                      <div className="dropdown ms-2">
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          title="Gestionar roles"
+                        >
+                          <i className="bi bi-gear"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-end">
+                          <li><h6 className="dropdown-header">Roles activos</h6></li>
+                          <li><span className="dropdown-item-text text-success">
+                            <i className="bi bi-check-circle me-2"></i>Proveedor
+                          </span></li>
+                          {supplierData.isCustomer && (
+                            <li><span className="dropdown-item-text text-primary">
+                              <i className="bi bi-check-circle me-2"></i>Comprador
+                            </span></li>
+                          )}
+
+                          <li><hr className="dropdown-divider" /></li>
+                          <li><h6 className="dropdown-header">Gestionar roles</h6></li>
+
+                          {!supplierData.isCustomer ? (
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => showConfirmation('add-customer')}
+                              >
+                                <i className="bi bi-plus-circle me-2 text-success"></i>Activar como Comprador
+                              </button>
+                            </li>
+                          ) : (
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => showConfirmation('remove-customer')}
+                              >
+                                <i className="bi bi-dash-circle me-2 text-warning"></i>Quitar rol de Comprador
+                              </button>
+                            </li>
+                          )}
+
+                          {/* Solo mostrar opción de desactivar si tiene más de un rol */}
+                          {supplierData.isCustomer && (
+                            <>
+                              <li><hr className="dropdown-divider" /></li>
+                              <li>
+                                <button
+                                  className="dropdown-item text-danger"
+                                  onClick={() => showConfirmation('remove-supplier')}
+                                >
+                                  <i className="bi bi-x-circle me-2"></i>Desactivar como Proveedor
+                                </button>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+                    </h2>
                     <p className="mb-1">
                       <strong>RUT:</strong> {formatRut(supplierData.supplier.rut)}
                     </p>
@@ -612,6 +729,74 @@ export default function SupplierDetail() {
                           onClick={closePurchaseDetailModal}
                         >
                           Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Modal de confirmación de roles */}
+            {showRoleConfirm.show && (
+              <>
+                <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+                <div className="modal fade show" style={{ display: 'block', zIndex: 1055 }}>
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title">
+                          {showRoleConfirm.type === 'add-customer' && '🔄 Activar como Comprador'}
+                          {showRoleConfirm.type === 'remove-customer' && '⚠️ Quitar rol de Comprador'}
+                          {showRoleConfirm.type === 'remove-supplier' && '⚠️ Desactivar como Proveedor'}
+                        </h5>
+                        <button
+                          type="button"
+                          className="btn-close"
+                          onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                        />
+                      </div>
+                      <div className="modal-body">
+                        {showRoleConfirm.type === 'add-customer' && (
+                          <p>
+                            <strong>{supplierData?.supplier.name}</strong> podrá aparecer en ventas como comprador.
+                            Mantendrá sus datos de proveedor intactos.
+                          </p>
+                        )}
+                        {showRoleConfirm.type === 'remove-customer' && (
+                          <p>
+                            Se quitará el rol de comprador para <strong>{supplierData?.supplier.name}</strong>.
+                            Se mantendrá el historial existente pero no aparecerá en nuevas ventas.
+                          </p>
+                        )}
+                        {showRoleConfirm.type === 'remove-supplier' && (
+                          <p className="text-danger">
+                            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                            Se desactivará <strong>{supplierData?.supplier.name}</strong> como proveedor.
+                            Se mantendrá el historial pero no aparecerá en nuevas compras.
+                          </p>
+                        )}
+                      </div>
+                      <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn ${showRoleConfirm.type === 'add-customer' ? 'btn-success' :
+                            showRoleConfirm.type === 'remove-customer' ? 'btn-warning' : 'btn-danger'
+                            }`}
+                          onClick={() => {
+                            if (showRoleConfirm.type === 'add-customer') handleAddCustomerRole();
+                            if (showRoleConfirm.type === 'remove-customer') handleRemoveCustomerRole();
+                            if (showRoleConfirm.type === 'remove-supplier') handleRemoveSupplierRole();
+                          }}
+                        >
+                          Confirmar
                         </button>
                       </div>
                     </div>

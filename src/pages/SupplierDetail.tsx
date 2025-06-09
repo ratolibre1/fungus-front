@@ -88,7 +88,17 @@ export default function SupplierDetail() {
       } else if (sortField === 'total') {
         comparison = a.total - b.total;
       } else if (sortField === 'status') {
-        comparison = a.status.localeCompare(b.status);
+        // Usar la misma lógica que el display para obtener el estado correcto
+        const fullTransactionA = transactions.find(t => t._id === a._id);
+        const fullTransactionB = transactions.find(t => t._id === b._id);
+        const statusA = fullTransactionA ? fullTransactionA.status : a.status;
+        const statusB = fullTransactionB ? fullTransactionB.status : b.status;
+
+        // Traducir estados para comparación consistente
+        const translatedStatusA = getStatusInfo(statusA as string).text;
+        const translatedStatusB = getStatusInfo(statusB as string).text;
+
+        comparison = translatedStatusA.localeCompare(translatedStatusB);
       } else {
         comparison = a[sortField].toString().localeCompare(b[sortField].toString());
       }

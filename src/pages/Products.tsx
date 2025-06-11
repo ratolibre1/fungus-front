@@ -350,77 +350,81 @@ export default function Products() {
                 No hay productos disponibles.
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                        Nombre
-                        <i className={`bi ms-1 ${sortField === 'name'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
-                        Descripción
-                        <i className={`bi ms-1 ${sortField === 'description'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-end" onClick={() => handleSort('netPrice')} style={{ cursor: 'pointer' }}>
-                        Precio
-                        <i className={`bi ms-1 ${sortField === 'netPrice'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-center" onClick={() => handleSort('stock')} style={{ cursor: 'pointer' }}>
-                        Stock
-                        <i className={`bi ms-1 ${sortField === 'stock'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getSortedProducts().map(product => (
-                      <tr key={product._id}>
-                        <td>{product.name}</td>
-                        <td>
-                          {product.description}
-                          {product.dimensions && (
-                            <span className="ms-1" style={{ color: '#6c757d', fontSize: '0.9em' }}>
-                              ({product.dimensions})
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-end">{formatPrice(product.netPrice)}</td>
-                        <td className="text-center">
-                          <span className={`badge ${product.stock === 0 ? 'bg-danger' : (product.stock ? 'bg-success' : 'bg-secondary')}`}>
-                            {product.stock !== null ? product.stock : ''}
-                          </span>
-                        </td>
-                        <td className="text-center">
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openModal('edit', product)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => openModal('delete', product)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover table-striped">
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                            Nombre
+                            <i className={`bi ms-1 ${sortField === 'name'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
+                            Descripción
+                            <i className={`bi ms-1 ${sortField === 'description'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-end" onClick={() => handleSort('netPrice')} style={{ cursor: 'pointer' }}>
+                            Precio
+                            <i className={`bi ms-1 ${sortField === 'netPrice'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-center" onClick={() => handleSort('stock')} style={{ cursor: 'pointer' }}>
+                            Stock
+                            <i className={`bi ms-1 ${sortField === 'stock'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getSortedProducts().map(product => (
+                          <tr key={product._id}>
+                            <td>{product.name}</td>
+                            <td>
+                              {product.description}
+                              {product.dimensions && (
+                                <span className="ms-1" style={{ color: '#6c757d', fontSize: '0.9em' }}>
+                                  ({product.dimensions})
+                                </span>
+                              )}
+                            </td>
+                            <td className="text-end">{formatPrice(product.netPrice)}</td>
+                            <td className="text-center">
+                              <span className={`badge ${product.stock === 0 ? 'bg-danger' : (product.stock ? 'bg-success' : 'bg-secondary')}`}>
+                                {product.stock !== null ? product.stock : ''}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => openModal('edit', product)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => openModal('delete', product)}
+                                  title="Eliminar"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </>

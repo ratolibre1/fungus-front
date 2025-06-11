@@ -1,28 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-}
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-
-  // Cargar usuario desde localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem('fungus_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  // Verificar si el usuario es administrador
-  const isAdmin = user?.role === 'admin';
 
   const modules = [
     {
@@ -63,7 +43,7 @@ export default function Dashboard() {
       description: 'Generación y seguimiento de cotizaciones',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/cotizaciones',
-      enabled: isAdmin ? true : false
+      enabled: true
     },
     {
       title: 'Ventas',
@@ -71,7 +51,7 @@ export default function Dashboard() {
       description: 'Registro y análisis de ventas',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/ventas',
-      enabled: isAdmin ? true : false
+      enabled: true
     },
     {
       title: 'Compras',
@@ -79,7 +59,7 @@ export default function Dashboard() {
       description: 'Registro de compras a proveedores',
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/compras',
-      enabled: isAdmin ? true : false
+      enabled: true
     }
   ];
 

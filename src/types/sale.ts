@@ -1,13 +1,32 @@
-export interface Sale {
-  _id: string;
-  correlative: number;
-  documentType: 'factura' | 'boleta';
-  documentNumber: number | string;
-  date: string;
-  client: {
+export type SaleStatus = 'pending' | 'invoiced' | 'paid';
+export type DocumentType = 'boleta' | 'factura';
+
+export interface SaleItem {
+  _id?: string;
+  itemDetail: {
     _id: string;
     name: string;
-    rut: string;
+    description: string;
+    netPrice: number;
+    dimensions?: string;
+  };
+  quantity: number;
+  unitPrice: number;
+  discount: number;
+  subtotal: number;
+}
+
+export interface Sale {
+  _id: string;
+  type: 'sale';
+  correlative: number;
+  documentNumber: string;
+  documentType: DocumentType;
+  date: string;
+  counterparty: string | {
+    _id: string;
+    name: string;
+    rut?: string;
     email?: string;
     phone?: string;
     address?: string;
@@ -16,71 +35,66 @@ export interface Sale {
   netAmount: number;
   taxAmount: number;
   totalAmount: number;
-  seller?: {
+  taxRate: number;
+  status: SaleStatus;
+  user: string | {
     _id: string;
     name: string;
     email?: string;
   };
-  quotationRef?: {
+  isDeleted: boolean;
+  observations?: string;
+  relatedQuotation?: string | {
     _id: string;
+    documentNumber: string;
     correlative: number;
-    date: string;
   };
-  observations?: string;
-  isDeleted?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface SaleItem {
-  _id?: string;
-  product: {
-    _id: string;
-    name: string;
-    description?: string;
-    netPrice?: number;
+export interface SalePreviewRequest {
+  documentType: DocumentType;
+  items: {
+    item: string;
+    quantity: number;
+    unitPrice: number;
+    discount?: number;
+  }[];
+  taxRate?: number;
+}
+
+export interface SalePreviewResponse {
+  success: boolean;
+  data: {
+    items: {
+      _id: string;
+      quantity: number;
+      unitPrice: number;
+      discount: number;
+      subtotal: number;
+    }[];
+    netAmount: number;
+    taxAmount: number;
+    totalAmount: number;
+    taxRate: number;
+    documentType: DocumentType;
   };
-  quantity: number;
-  unitPrice: number;
-  discount: number;
-  subtotal: number;
 }
 
-export interface CreateSaleRequest {
-  documentType: 'factura' | 'boleta';
-  date?: string;
-  client: string;
-  items: CreateSaleItemRequest[];
-  netAmount: number;
-  taxAmount: number;
-  totalAmount: number;
-  quotationRef?: string;
-  observations?: string;
-}
-
-export interface CreateSaleItemRequest {
-  product: string;
-  quantity: number;
-  unitPrice: number;
-  discount: number;
-  subtotal: number;
-}
-
-export interface UpdateSaleRequest {
-  documentType?: 'factura' | 'boleta';
-  date?: string;
-  client?: string;
-  items?: CreateSaleItemRequest[];
-  netAmount?: number;
-  taxAmount?: number;
-  totalAmount?: number;
-  quotationRef?: string;
-  observations?: string;
+export interface SalePagination {
+  total: number;
+  pages: number;
+  page: number;
+  limit: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export interface SalesResponse {
   success: boolean;
-  count?: number;
+  count: number;
+  pagination: SalePagination;
   data: Sale[];
 }
 
@@ -89,75 +103,92 @@ export interface SaleResponse {
   data: Sale;
 }
 
-export interface SaleSearchParams {
-  term?: string;
-  startDate?: string;
-  endDate?: string;
-  clientId?: string;
-}
-
-export interface PeriodRequest {
-  startDate: string;
-  endDate: string;
-}
-
-export interface PeriodResponse {
+export interface SaleStatusUpdateResponse {
   success: boolean;
-  data: {
-    sales: Sale[];
-    summary: {
-      totalSales: number;
-      totalAmount: number;
-      totalNetAmount: number;
-      totalTaxAmount: number;
-      byDocumentType: {
-        [key: string]: {
-          count: number;
-          amount: number;
-        }
-      }
-    }
-  }
+  data: Sale;
 }
 
-export interface ClientSalesResponse {
-  success: boolean;
-  count: number;
-  data: {
-    client: {
-      _id: string;
-      name: string;
-      rut: string;
-      email?: string;
-      phone?: string;
-      address?: string;
-      isCustomer: boolean;
-      isSupplier: boolean;
-      isDeleted: boolean;
-    };
-    sales: Sale[];
-    statistics: {
-      totalSales: number;
-      totalAmount: number;
-      averageAmount: number;
-      firstPurchase: string;
-      lastPurchase: string;
-    }
-  }
-}
-
-export interface SalePdfResponse {
+export interface SaleDeleteResponse {
   success: boolean;
   message: string;
-  data: {
-    sale: Sale;
-    companyInfo: {
-      name: string;
-      rut: string;
-      address: string;
-      phone: string;
-      email: string;
-    };
-    generatedAt: string;
-  }
-} 
+}
+
+export interface ConvertQuotationResponse {
+  success: boolean;
+  data: Sale;
+  message: string;
+}
+
+export interface CreateSaleRequest {
+  documentType: DocumentType;
+  counterparty: string;
+  items: {
+    item: string;
+    quantity: number;
+    unitPrice: number;
+    discount?: number;
+  }[];
+  taxRate?: number;
+  observations?: string;
+  relatedQuotation?: string;
+}
+
+export interface UpdateSaleRequest {
+  documentType?: DocumentType;
+  counterparty?: string;
+  items?: {
+    item: string;
+    quantity: number;
+    unitPrice: number;
+    discount?: number;
+  }[];
+  taxRate?: number;
+  observations?: string;
+}
+
+export interface SaleFilters {
+  page?: number;
+  limit?: number;
+  status?: SaleStatus;
+  startDate?: string;
+  endDate?: string;
+  counterparty?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
+
+// Estados y transiciones válidas según especificación backend
+export const SALE_STATUSES = {
+  PENDING: 'pending' as const,
+  INVOICED: 'invoiced' as const,
+  PAID: 'paid' as const
+};
+
+export const VALID_SALE_TRANSITIONS: Record<SaleStatus, SaleStatus[]> = {
+  pending: ['invoiced'],
+  invoiced: ['paid'],
+  paid: [] // Estado final
+};
+
+// Utilidades para validaciones
+export const canChangeSaleStatus = (currentStatus: SaleStatus, newStatus: SaleStatus): boolean => {
+  return VALID_SALE_TRANSITIONS[currentStatus]?.includes(newStatus) || false;
+};
+
+export const getSaleStatusColor = (status: SaleStatus): string => {
+  const colors = {
+    pending: 'warning',
+    invoiced: 'primary',
+    paid: 'success'
+  };
+  return colors[status] || 'secondary';
+};
+
+export const getSaleStatusLabel = (status: SaleStatus): string => {
+  const labels = {
+    pending: 'Pendiente',
+    invoiced: 'Facturada',
+    paid: 'Pagada'
+  };
+  return labels[status] || status;
+}; 

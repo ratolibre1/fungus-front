@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import QuotationsBackground from '../components/QuotationsBackground';
+import PurchasesBackground from '../components/PurchasesBackground';
 import {
-  getQuotations,
-  deleteQuotation,
-  updateQuotationStatus,
-  createQuotation,
-  updateQuotation,
-  convertQuotationToSale
-} from '../services/quotationService';
+  getPurchases,
+  deletePurchase,
+  updatePurchaseStatus,
+  createPurchase,
+  updatePurchase
+} from '../services/purchaseService';
 import {
-  Quotation,
-  QuotationPagination,
-  QuotationStatus,
-  QuotationFilters,
+  Purchase,
+  PurchasePagination,
+  PurchaseStatus,
+  PurchaseFilters,
   DocumentType
-} from '../types/quotation';
-import QuotationTable from '../components/quotations/QuotationTable';
-import QuotationDetailsModal from '../components/quotations/QuotationDetailsModal';
-import QuotationFormModal from '../components/quotations/QuotationFormModal';
+} from '../types/purchase';
+import PurchaseTable from '../components/purchases/PurchaseTable';
+import PurchaseDetailsModal from '../components/purchases/PurchaseDetailsModal';
+import PurchaseFormModal from '../components/purchases/PurchaseFormModal';
 
-export default function Quotations() {
+export default function PurchasesPage() {
   // Estado para los datos
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
-  const [pagination, setPagination] = useState<QuotationPagination>({
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [pagination, setPagination] = useState<PurchasePagination>({
     total: 0,
     pages: 0,
     page: 1,
@@ -35,7 +34,7 @@ export default function Quotations() {
   const [error, setError] = useState<string | null>(null);
 
   // Estado para los filtros
-  const [filters, setFilters] = useState<QuotationFilters>({
+  const [filters, setFilters] = useState<PurchaseFilters>({
     page: 1,
     limit: 20,
     sortField: 'documentNumber',
@@ -43,23 +42,23 @@ export default function Quotations() {
   });
 
   // Estado para modal
-  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
-  // Cargar datos de cotizaciones
-  const loadQuotations = async () => {
+  // Cargar datos de compras
+  const loadPurchases = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await getQuotations(filters);
-      setQuotations(response.data);
+      const response = await getPurchases(filters);
+      setPurchases(response.data);
       setPagination(response.pagination);
     } catch (err) {
-      console.error('Error al cargar cotizaciones:', err);
-      setError('Ocurrió un error al cargar las cotizaciones. Por favor, intente nuevamente.');
+      console.error('Error al cargar compras:', err);
+      setError('Ocurrió un error al cargar las compras. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -67,7 +66,7 @@ export default function Quotations() {
 
   // Cargar datos al montar el componente o cambiar filtros
   useEffect(() => {
-    loadQuotations();
+    loadPurchases();
   }, [filters]);
 
   // Manejar cambio de página
@@ -91,115 +90,84 @@ export default function Quotations() {
   };
 
   // Manejar ver detalles
-  const handleViewDetails = (quotation: Quotation) => {
-    setSelectedQuotation(quotation);
+  const handleViewDetails = (purchase: Purchase) => {
+    setSelectedPurchase(purchase);
     setShowDetailModal(true);
   };
 
   // Manejar edición
-  const handleEditQuotation = (quotation: Quotation) => {
-    setSelectedQuotation(quotation);
+  const handleEditPurchase = (purchase: Purchase) => {
+    setSelectedPurchase(purchase);
     setShowEditModal(true);
   };
 
-  // Manejar envío del formulario de cotización
-  const handleQuotationSubmit = async (formData: {
+  // Manejar envío del formulario de compra
+  const handlePurchaseSubmit = async (formData: {
     documentType: DocumentType;
     counterparty: string;
-    validUntil?: string;
     items: {
       item: string;
       quantity: number;
       unitPrice: number;
       discount?: number;
     }[];
+    date?: string;
     taxRate?: number;
     observations?: string;
   }) => {
     setLoading(true);
     try {
-      if (selectedQuotation) {
-        // Actualizar cotización existente
-        await updateQuotation(selectedQuotation._id, formData);
+      if (selectedPurchase) {
+        // Actualizar compra existente
+        await updatePurchase(selectedPurchase._id, formData);
       } else {
-        // Crear nueva cotización
-        await createQuotation(formData);
+        // Crear nueva compra
+        await createPurchase(formData);
       }
 
-      loadQuotations(); // Recargar la lista
+      loadPurchases(); // Recargar la lista
       setShowEditModal(false);
-      setSelectedQuotation(null);
+      setSelectedPurchase(null);
     } catch (err) {
-      console.error('Error saving quotation:', err);
-      setError('No se pudo guardar la cotización. Por favor, intente nuevamente.');
+      console.error('Error saving purchase:', err);
+      setError('No se pudo guardar la compra. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   // Manejar eliminación
-  const handleDeleteQuotation = (quotation: Quotation) => {
-    setSelectedQuotation(quotation);
+  const handleDeletePurchase = (purchase: Purchase) => {
+    setSelectedPurchase(purchase);
     setShowDeleteModal(true);
   };
 
   // Confirmar eliminación
   const confirmDelete = async () => {
-    if (!selectedQuotation) return;
+    if (!selectedPurchase) return;
 
     setLoading(true);
     try {
-      await deleteQuotation(selectedQuotation._id);
-      loadQuotations(); // Recargar la lista
+      await deletePurchase(selectedPurchase._id);
+      loadPurchases(); // Recargar la lista
       setShowDeleteModal(false);
     } catch (err) {
-      console.error('Error al eliminar cotización:', err);
-      setError('No se pudo eliminar la cotización. Por favor, intente nuevamente.');
+      console.error('Error al eliminar compra:', err);
+      setError('No se pudo eliminar la compra. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Cambiar estado de cotización
-  const handleStatusChange = async (quotation: Quotation, newStatus: QuotationStatus) => {
+  // Cambiar estado de compra
+  const handleStatusChange = async (purchase: Purchase, newStatus: PurchaseStatus) => {
     setLoading(true);
     try {
-      if (newStatus === 'converted') {
-        const result = await convertQuotationToSale(quotation._id);
-
-        // Mostrar notificación de éxito
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
-        alert.style.top = '20px';
-        alert.style.right = '20px';
-        alert.style.zIndex = '9999';
-        alert.innerHTML = `
-          <i class="bi bi-check-circle-fill me-2"></i>
-          <strong>¡Conversión exitosa!</strong> 
-          Venta ${result.data.documentNumber} creada correctamente.
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(alert);
-
-        // Auto-ocultar después de 5 segundos
-        setTimeout(() => {
-          alert.remove();
-        }, 5000);
-
-        console.log('✅ Cotización convertida a venta:', result.data);
-      } else {
-        await updateQuotationStatus(quotation._id, newStatus);
-      }
-
-      loadQuotations(); // Recargar la lista
+      await updatePurchaseStatus(purchase._id, newStatus);
+      loadPurchases(); // Recargar la lista
     } catch (err) {
       console.error('Error al cambiar estado:', err);
-
-      if (newStatus === 'converted') {
-        setError('No se pudo convertir la cotización a venta. Por favor, intente nuevamente.');
-      } else {
-        setError('No se pudo cambiar el estado de la cotización. Por favor, intente nuevamente.');
-      }
+      setError('No se pudo cambiar el estado de la compra. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -223,19 +191,19 @@ export default function Quotations() {
 
   return (
     <Layout>
-      <div className="quotations-page-container">
-        <QuotationsBackground />
+      <div className="purchases-page-container">
+        <PurchasesBackground />
         <div className="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
-          <h1 className="h2 font-heading" style={{ color: '#099347' }}>Cotizaciones</h1>
+          <h1 className="h2 font-heading" style={{ color: '#099347' }}>Compras</h1>
           <div>
             <button
               className="btn btn-sm btn-success me-2"
               onClick={() => {
-                setSelectedQuotation(null);
+                setSelectedPurchase(null);
                 setShowEditModal(true);
               }}
             >
-              <i className="bi bi-plus-lg me-1"></i> Nueva Cotización
+              <i className="bi bi-plus-lg me-1"></i> Nueva Compra
             </button>
           </div>
         </div>
@@ -263,9 +231,8 @@ export default function Quotations() {
                 >
                   <option value="">Todos</option>
                   <option value="pending">Pendiente</option>
-                  <option value="approved">Aprobada</option>
+                  <option value="received">Recibida</option>
                   <option value="rejected">Rechazada</option>
-                  <option value="converted">Convertida</option>
                 </select>
               </div>
               <div className="col-md-6 col-lg-3">
@@ -295,7 +262,7 @@ export default function Quotations() {
                   <button
                     className="btn btn-outline-primary me-md-2 flex-grow-1"
                     type="button"
-                    onClick={loadQuotations}
+                    onClick={loadPurchases}
                   >
                     <i className="bi bi-search me-1"></i> Buscar
                   </button>
@@ -312,16 +279,16 @@ export default function Quotations() {
           </div>
         </div>
 
-        {/* Tabla de cotizaciones */}
-        <QuotationTable
-          quotations={quotations}
+        {/* Tabla de compras */}
+        <PurchaseTable
+          purchases={purchases}
           pagination={pagination}
           loading={loading}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
           onViewDetails={handleViewDetails}
-          onEditQuotation={handleEditQuotation}
-          onDeleteQuotation={handleDeleteQuotation}
+          onEditPurchase={handleEditPurchase}
+          onDeletePurchase={handleDeletePurchase}
           onStatusChange={handleStatusChange}
           onSort={handleSort}
           initialSort={{ field: 'documentNumber', direction: 'desc' }}
@@ -329,8 +296,8 @@ export default function Quotations() {
 
         {/* Modal de detalles */}
         {showDetailModal && (
-          <QuotationDetailsModal
-            quotation={selectedQuotation}
+          <PurchaseDetailsModal
+            purchase={selectedPurchase}
             onClose={() => setShowDetailModal(false)}
             onEdit={() => {
               setShowDetailModal(false);
@@ -340,7 +307,7 @@ export default function Quotations() {
         )}
 
         {/* Modal de eliminación */}
-        {showDeleteModal && selectedQuotation && (
+        {showDeleteModal && selectedPurchase && (
           <>
             {/* Backdrop del modal */}
             <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
@@ -372,7 +339,7 @@ export default function Quotations() {
                     />
                   </div>
                   <div className="modal-body">
-                    <p>¿Está seguro que desea eliminar la cotización <strong>{selectedQuotation.documentNumber}</strong>?</p>
+                    <p>¿Está seguro que desea eliminar la compra <strong>{selectedPurchase.documentNumber}</strong>?</p>
                     <p className="text-danger">
                       <i className="bi bi-exclamation-triangle-fill me-2"></i>
                       Esta acción no se puede deshacer.
@@ -409,15 +376,15 @@ export default function Quotations() {
           </>
         )}
 
-        {/* Modal para editar/crear cotizaciones */}
-        <QuotationFormModal
-          quotation={selectedQuotation}
+        {/* Modal para editar/crear compras */}
+        <PurchaseFormModal
+          purchase={selectedPurchase}
           isOpen={showEditModal}
           onClose={() => {
             setShowEditModal(false);
-            setSelectedQuotation(null);
+            setSelectedPurchase(null);
           }}
-          onSubmit={handleQuotationSubmit}
+          onSubmit={handlePurchaseSubmit}
           loading={loading}
         />
       </div>

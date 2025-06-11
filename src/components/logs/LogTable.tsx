@@ -1,5 +1,4 @@
-import { Log, LogPagination } from '../../types/Log';
-import { formatDate } from '../../utils/dateUtils';
+import { Log, LogPagination, TransactionLogDetails, ContactLogDetails, ItemLogDetails } from '../../types/Log';
 
 interface LogTableProps {
   logs: Log[];
@@ -67,6 +66,103 @@ export default function LogTable({
     };
 
     return collections[collection] || collection;
+  };
+
+  // Función para formatear moneda
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // Función para obtener información clave del log
+  const getKeyInfo = (log: Log): { title: string; subtitle?: string; badge?: string } => {
+    const details = log.details;
+
+    // Para transacciones (cotizaciones, ventas, compras)
+    if (log.collectionType === 'quotation' || log.collectionType === 'sale' || log.collectionType === 'purchase') {
+      const transactionDetails = details as TransactionLogDetails;
+
+      if (transactionDetails.documentNumber) {
+        const subtitle = transactionDetails.counterparty?.name ||
+          transactionDetails.transactionInfo?.counterparty ||
+          'Contraparte no disponible';
+
+        let badge = '';
+        if (transactionDetails.operationType === 'STATUS_CHANGE') {
+          badge = `${transactionDetails.statusTransition?.from} → ${transactionDetails.statusTransition?.to}`;
+        } else if (transactionDetails.operationType === 'QUOTATION_CONVERSION') {
+          badge = 'Conversión desde cotización';
+        } else if (transactionDetails.totalAmount) {
+          badge = formatCurrency(transactionDetails.totalAmount);
+        }
+
+        return {
+          title: transactionDetails.documentNumber,
+          subtitle,
+          badge
+        };
+      }
+    }
+
+    // Para contactos
+    if (log.collectionType === 'contact') {
+      const contactDetails = details as ContactLogDetails;
+
+      if (contactDetails.contactName) {
+        let badge = '';
+        if (contactDetails.operationType) {
+          const operationMap: Record<string, string> = {
+            'CLIENT_CREATION': 'Nuevo Cliente',
+            'SUPPLIER_CREATION': 'Nuevo Proveedor',
+            'CONTACT_CREATION': 'Nuevo Contacto',
+            'CONTACT_REACTIVATION': 'Reactivado',
+            'ROLE_CHANGE': 'Cambio de Rol',
+            'MARK_AS_REVIEWED': 'Revisado'
+          };
+          badge = operationMap[contactDetails.operationType] || contactDetails.operationType;
+        }
+
+        return {
+          title: contactDetails.contactName,
+          subtitle: contactDetails.contactRut,
+          badge
+        };
+      }
+    }
+
+    // Para items (productos/consumibles)
+    if (log.collectionType === 'product' || log.collectionType === 'consumable') {
+      const itemDetails = details as ItemLogDetails;
+
+      if (itemDetails.itemName) {
+        let badge = '';
+        if (itemDetails.priceImpact?.percentageChange) {
+          badge = `Precio ${itemDetails.priceImpact.percentageChange}`;
+        } else if (itemDetails.stockImpact?.difference) {
+          badge = `Stock ${itemDetails.stockImpact.difference > 0 ? '+' : ''}${itemDetails.stockImpact.difference}`;
+        } else if (itemDetails.financialImpact?.stockValue) {
+          badge = `Valor: ${formatCurrency(itemDetails.financialImpact.stockValue)}`;
+        } else if (itemDetails.pricing?.netPrice) {
+          badge = formatCurrency(itemDetails.pricing.netPrice);
+        }
+
+        return {
+          title: itemDetails.itemName,
+          subtitle: itemDetails.itemType === 'Product' ? 'Producto' : 'Insumo',
+          badge
+        };
+      }
+    }
+
+    // Fallback para logs sin información enriquecida
+    return {
+      title: `ID: ${log.documentId.substring(0, 8)}...`,
+      subtitle: undefined,
+      badge: undefined
+    };
   };
 
   // Generar paginador
@@ -155,68 +251,92 @@ export default function LogTable({
             <th scope="col">Usuario</th>
             <th scope="col">Operación</th>
             <th scope="col">Colección</th>
-            <th scope="col">ID Documento</th>
+            <th scope="col">Información Clave</th>
             <th scope="col" className="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {logs.map(log => (
-            <tr key={log._id}>
-              <td>
-                <div>{formatDate(log.createdAt)}</div>
-                <small className="text-muted">{new Date(log.createdAt).toLocaleTimeString()}</small>
-              </td>
-              <td>
-                {typeof log.userId === 'object' && log.userId ? (
-                  <>
-                    <div>{log.userId.name}</div>
-                    <small className="text-muted">{log.userId.email}</small>
-                  </>
-                ) : (
-                  <span className="text-muted">ID: {log.userId}</span>
-                )}
-              </td>
-              <td>{operationLabel(log.operation)}</td>
-              <td>{collectionLabel(log.collectionType)}</td>
-              <td>
-                <span className="text-truncate d-inline-block" style={{ maxWidth: '150px' }}>
-                  {log.documentId}
-                </span>
-              </td>
-              <td className="text-center">
-                <div className="btn-group" role="group">
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => onViewDetails(log)}
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Ver detalles"
-                  >
-                    <i className="bi bi-eye"></i>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => onDeleteLog(log)}
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Eliminar registro"
-                  >
-                    <i className="bi bi-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {logs.map(log => {
+            const keyInfo = getKeyInfo(log);
+            return (
+              <tr key={log._id}>
+                <td>
+                  <div>{new Date(log.createdAt).toLocaleDateString('es-CL')}</div>
+                  <small className="text-muted">{new Date(log.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</small>
+                </td>
+                <td>
+                  {typeof log.userId === 'object' && log.userId ? (
+                    <>
+                      <div className="fw-medium">{log.userId.name}</div>
+                      <small className="text-muted">{log.userId.email}</small>
+                    </>
+                  ) : (
+                    <span className="text-muted">ID: {log.userId}</span>
+                  )}
+                </td>
+                <td>{operationLabel(log.operation)}</td>
+                <td>
+                  <span className="badge bg-light text-dark border">
+                    {collectionLabel(log.collectionType)}
+                  </span>
+                </td>
+                <td>
+                  <div className="d-flex flex-column">
+                    <div className="fw-medium text-truncate" style={{ maxWidth: '200px' }} title={keyInfo.title}>
+                      {keyInfo.title}
+                    </div>
+                    {keyInfo.subtitle && (
+                      <small className="text-muted text-truncate" style={{ maxWidth: '200px' }} title={keyInfo.subtitle}>
+                        {keyInfo.subtitle}
+                      </small>
+                    )}
+                    {keyInfo.badge && (
+                      <span className="badge bg-info mt-1 align-self-start" style={{ fontSize: '0.7rem' }}>
+                        {keyInfo.badge}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="text-center">
+                  <div className="btn-group" role="group">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => onViewDetails(log)}
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Ver detalles"
+                    >
+                      <i className="bi bi-eye"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => onDeleteLog(log)}
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Eliminar registro"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
-      {renderPagination()}
-
-      <p className="text-center text-muted">
-        Mostrando {logs.length} de {pagination.total} registros, página {pagination.page} de {pagination.totalPages}
-      </p>
+      {/* Información de paginación */}
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div className="text-muted small">
+          Mostrando {logs.length} de {pagination.total} registros
+          {pagination.total > 0 && (
+            <span> (página {pagination.page} de {pagination.totalPages})</span>
+          )}
+        </div>
+        {renderPagination()}
+      </div>
     </div>
   );
 } 

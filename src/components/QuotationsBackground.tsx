@@ -11,7 +11,7 @@ const QuotationsBackground: React.FC = () => {
   return (
     <IconBackground
       svgPath={fileEarmarkTextSvg}  // Usamos el icono de archivo para cotizaciones (mismo que en Sidebar)
-      baseColor="#bdb2ff"           // Color azul para la sección de cotizaciones
+      baseColor="#fc9dff"           // Color rosa/magenta para la sección de cotizaciones
     />
   );
 };

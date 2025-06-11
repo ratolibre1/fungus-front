@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react'
+import { useState, useEffect, ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -9,9 +9,8 @@ import ClientDetail from './pages/ClientDetail'
 import Suppliers from './pages/Suppliers'
 import SupplierDetail from './pages/SupplierDetail'
 import Quotations from './pages/Quotations'
-import QuotationDetail from './pages/QuotationDetail'
-import Purchases from './pages/Purchases'
-import Sales from './pages/SalesPage'
+import SalesPage from './pages/SalesPage'
+import PurchasesPage from './pages/PurchasesPage'
 import Help from './pages/Help'
 import Logs from './pages/Logs'
 import NotFound from './pages/NotFound'
@@ -116,7 +115,7 @@ function App() {
           path="/compras"
           element={
             <ProtectedRoute>
-              <Purchases />
+              <PurchasesPage />
             </ProtectedRoute>
           }
         />
@@ -124,7 +123,7 @@ function App() {
           path="/ventas"
           element={
             <ProtectedRoute>
-              <Sales />
+              <SalesPage />
             </ProtectedRoute>
           }
         />
@@ -133,14 +132,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Quotations />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cotizacion/:id"
-          element={
-            <ProtectedRoute>
-              <QuotationDetail />
             </ProtectedRoute>
           }
         />

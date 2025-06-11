@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import BuyersBackground from '../components/BuyersBackground';
 import {
   getClients,
-  searchClients,
   createClient,
   updateClient,
   deleteClient
 } from '../services/clientService';
-import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } from '../types/client';
+import { Client, CreateClientRequest, UpdateClientRequest } from '../types/client';
 import { formatRut, formatPhone, compareStringsSpanish } from '../utils/validators';
 import ClientModal from '../components/ClientModal';
-import BuyersBackground from '../components/BuyersBackground';
 
 type ModalType = 'create' | 'edit' | 'delete' | 'view' | null;
 
@@ -19,26 +18,27 @@ export default function Clients() {
   // Estados
   const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
+  const [allClients, setAllClients] = useState<Client[]>([]); // Guardar todos los clientes
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [modalType, setModalType] = useState<ModalType>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isSearching, setIsSearching] = useState<boolean>(false);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
 
-  // Agregar nuevos estados para ordenamiento
+  // Estados para ordenamiento
   const [sortField, setSortField] = useState<keyof Client>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Cargar los clientes
+  // Cargar todos los clientes
   const loadClients = async () => {
     setLoading(true);
     setError(null);
 
     try {
       const response = await getClients();
-      setClients(response.data);
+      setAllClients(response.data); // Guardar todos los datos
+      setClients(response.data); // Mostrar todos inicialmente
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -46,34 +46,35 @@ export default function Clients() {
     }
   };
 
-  // Buscar clientes
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
-    if (!searchTerm.trim()) {
-      // Si no hay término de búsqueda, cargar todos los clientes
-      loadClients();
+  // Filtrar localmente en tiempo real
+  const filterClients = (term: string) => {
+    if (!term.trim()) {
+      setClients(allClients);
       return;
     }
 
-    setIsSearching(true);
-    setError(null);
+    const filtered = allClients.filter(client => {
+      const searchLower = term.toLowerCase();
+      return (
+        client.name.toLowerCase().includes(searchLower) ||
+        client.rut.toLowerCase().includes(searchLower) ||
+        client.email.toLowerCase().includes(searchLower)
+      );
+    });
 
-    try {
-      const params: ClientSearchParams = { term: searchTerm.trim() };
-      const response = await searchClients(params);
-      setClients(response.data);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setIsSearching(false);
-    }
+    setClients(filtered);
+  };
+
+  // Manejar cambio en el input de búsqueda
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    filterClients(value);
   };
 
   // Resetear búsqueda
   const resetSearch = () => {
     setSearchTerm('');
-    loadClients();
+    setClients(allClients);
   };
 
   // Cargar al montar el componente
@@ -109,7 +110,7 @@ export default function Clients() {
 
       // Recargar la lista después de la operación
       if (searchTerm.trim()) {
-        handleSearch();
+        handleSearchChange(searchTerm);
       } else {
         loadClients();
       }
@@ -176,7 +177,7 @@ export default function Clients() {
         {/* Barra de búsqueda */}
         <div className="card mb-4 border-0 shadow-sm">
           <div className="card-body">
-            <form onSubmit={handleSearch} className="row g-3">
+            <div className="row g-3">
               <div className="col-md-6">
                 <div className="input-group">
                   <input
@@ -184,19 +185,11 @@ export default function Clients() {
                     className="form-control"
                     placeholder="Buscar por nombre, rut o email..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
-                  <button
-                    className="btn btn-outline-secondary"
-                    type="submit"
-                    disabled={isSearching}
-                  >
-                    {isSearching ? (
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    ) : (
-                      <i className="bi bi-search"></i>
-                    )}
-                  </button>
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
                   {searchTerm && (
                     <button
                       className="btn btn-outline-secondary"
@@ -208,7 +201,7 @@ export default function Clients() {
                   )}
                 </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
 
@@ -219,7 +212,7 @@ export default function Clients() {
           </div>
         )}
 
-        {loading && !error && !isSearching ? (
+        {loading && !error ? (
           <div className="d-flex justify-content-center my-5">
             <div className="spinner-border" style={{ color: '#099347' }} role="status">
               <span className="visually-hidden">Cargando...</span>
@@ -232,82 +225,86 @@ export default function Clients() {
                 {searchTerm ? "No se encontraron compradores con ese criterio de búsqueda." : "No hay compradores disponibles."}
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                        Nombre
-                        <i className={`bi ms-1 ${sortField === 'name'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
-                        RUT
-                        <i className={`bi ms-1 ${sortField === 'rut'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
-                        Email
-                        <i className={`bi ms-1 ${sortField === 'email'
-                          ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
-                          : 'bi-arrow-down-square'}`}></i>
-                      </th>
-                      <th>Teléfono</th>
-                      <th>Dirección</th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getSortedClients().map(client => (
-                      <tr key={client._id}>
-                        <td>
-                          {client.needsReview && (
-                            <i className="bi bi-exclamation-triangle-fill"
-                              style={{
-                                color: '#ffc107'
-                              }}
-                              title="Requiere revisión"></i>
-                          )}
-                          {client.isSupplier && (
-                            <i className="bi bi-box-seam-fill"
-                              style={{ color: '#099347' }}
-                              title="También es Proveedor"></i>
-                          )} {client.name}</td>
-                        <td>{formatRut(client.rut)}</td>
-                        <td>{client.email}</td>
-                        <td>{client.phone ? formatPhone(client.phone) : '-'}</td>
-                        <td>{client.address || '-'}</td>
-                        <td className="text-center">
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-sm btn-outline-success"
-                              onClick={() => navigate(`/comprador/${client._id}`)}
-                              title="Ver detalle"
-                            >
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openModal('edit', client)}
-                              title="Editar"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => openModal('delete', client)}
-                              title="Eliminar"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <div className="table-responsive">
+                    <table className="table table-hover table-striped">
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                            Nombre
+                            <i className={`bi ms-1 ${sortField === 'name'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('rut')} style={{ cursor: 'pointer' }}>
+                            RUT
+                            <i className={`bi ms-1 ${sortField === 'rut'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
+                            Email
+                            <i className={`bi ms-1 ${sortField === 'email'
+                              ? (sortDirection === 'asc' ? 'bi-arrow-up-square-fill' : 'bi-arrow-down-square-fill')
+                              : 'bi-arrow-down-square'}`}></i>
+                          </th>
+                          <th>Teléfono</th>
+                          <th>Dirección</th>
+                          <th className="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getSortedClients().map(client => (
+                          <tr key={client._id}>
+                            <td>
+                              {client.needsReview && (
+                                <i className="bi bi-exclamation-triangle-fill"
+                                  style={{
+                                    color: '#ffc107'
+                                  }}
+                                  title="Requiere revisión"></i>
+                              )}
+                              {client.isSupplier && (
+                                <i className="bi bi-box-seam-fill"
+                                  style={{ color: '#099347' }}
+                                  title="También es Proveedor"></i>
+                              )} {client.name}</td>
+                            <td>{formatRut(client.rut)}</td>
+                            <td>{client.email}</td>
+                            <td>{client.phone ? formatPhone(client.phone) : '-'}</td>
+                            <td>{client.address || '-'}</td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button
+                                  className="btn btn-sm btn-outline-success"
+                                  onClick={() => navigate(`/comprador/${client._id}`)}
+                                  title="Ver detalle"
+                                >
+                                  <i className="bi bi-eye"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => openModal('edit', client)}
+                                  title="Editar"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => openModal('delete', client)}
+                                  title="Eliminar"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </>

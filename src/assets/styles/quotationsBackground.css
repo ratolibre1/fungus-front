@@ -19,6 +19,21 @@
   pointer-events: none;
 }
 
+/* Gradiente de fondo para cotizaciones - Rosa/Magenta */
+.quotations-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+      rgba(252, 157, 255, 0.1) 0%,
+      rgba(252, 157, 255, 0.05) 50%,
+      rgba(252, 157, 255, 0.02) 100%);
+  z-index: -1;
+}
+
 .quotation-grid {
   display: grid;
   grid-template-columns: repeat(30, 1fr);
@@ -121,4 +136,42 @@
 
 .quotation-point:nth-child(13n) {
   color: #1A5A76;
+}
+
+/* Asegurar que los dropdowns se vean completamente */
+.table-responsive {
+  overflow: visible !important;
+}
+
+.dropdown-menu {
+  z-index: 1050 !important;
+}
+
+.sale-point:nth-child(13n) {
+  color: #1A5A76;
+}
+
+/* Asegurar que los dropdowns de estado se vean completamente */
+.quotations-page-container .dropdown {
+  position: static;
+}
+
+.quotations-page-container .dropdown-menu {
+  z-index: 1050 !important;
+  position: absolute !important;
+}
+
+/* En móvil, mantener el overflow para scroll horizontal */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+}
+
+/* En desktop, permitir que los dropdowns se salgan */
+@media (min-width: 769px) {
+  .table-responsive {
+    overflow: visible !important;
+  }
 }

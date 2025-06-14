@@ -1,92 +1,96 @@
-import { useState } from 'react';
+import React from 'react';
+import PortalModal from '../common/PortalModal';
 
 interface LogCleanupModalProps {
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: (daysToKeep: number) => void;
 }
 
 export default function LogCleanupModal({ onClose, onConfirm }: LogCleanupModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [daysToKeep, setDaysToKeep] = React.useState<number>(30);
 
-  const handleConfirm = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await onConfirm();
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al limpiar los registros antiguos');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleConfirm = () => {
+    onConfirm(daysToKeep);
+  };
+
+  const handleDaysChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDaysToKeep(parseInt(e.target.value));
+  };
+
+  const getEstimatedDeletions = () => {
+    const currentDate = new Date();
+    const cutoffDate = new Date(currentDate.getTime() - (daysToKeep * 24 * 60 * 60 * 1000));
+    return cutoffDate.toLocaleDateString('es-CL');
   };
 
   return (
-    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Limpiar registros antiguos</h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-              disabled={isLoading}
-              aria-label="Cerrar"
-            ></button>
-          </div>
-          <div className="modal-body">
-            {error && (
-              <div className="alert alert-danger" role="alert">
-                <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                {error}
-              </div>
-            )}
+    <PortalModal isOpen={true} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
-            <div className="alert alert-warning" role="alert">
-              <i className="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>Atención:</strong> Esta acción eliminará todos los registros de actividad más antiguos que 90 días.
+      {/* Modal */}
+      <div
+        className="modal fade show"
+        style={{
+          display: 'block',
+          zIndex: 1055
+        }}
+        tabIndex={-1}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Limpiar registros antiguos</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+                aria-label="Cerrar"
+              />
             </div>
+            <div className="modal-body">
+              <div className="alert alert-warning">
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+              </div>
 
-            <p>
-              La limpieza de registros antiguos ayuda a mantener el rendimiento del sistema y reduce el almacenamiento de datos históricos innecesarios.
-            </p>
+              <div className="mb-3">
+                <label htmlFor="daysToKeep" className="form-label">
+                  Mantener registros de los últimos:
+                </label>
+                <select
+                  id="daysToKeep"
+                  className="form-select"
+                  value={daysToKeep}
+                  onChange={handleDaysChange}
+                >
+                  <option value={7}>7 días</option>
+                  <option value={15}>15 días</option>
+                  <option value={30}>30 días</option>
+                  <option value={60}>60 días</option>
+                  <option value={90}>90 días</option>
+                </select>
+              </div>
 
-            <p className="fw-bold text-danger">
-              Esta acción no se puede deshacer.
-            </p>
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-warning"
-              onClick={handleConfirm}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-trash-fill me-1"></i>
-                  Limpiar registros antiguos
-                </>
-              )}
-            </button>
+              <p className="text-muted">
+                Se eliminarán todos los registros anteriores al <strong>{getEstimatedDeletions()}</strong>.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                Cancelar
+              </button>
+              <button type="button" className="btn btn-danger" onClick={handleConfirm}>
+                <i className="bi bi-trash me-1"></i> Limpiar registros
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PortalModal>
   );
 } 

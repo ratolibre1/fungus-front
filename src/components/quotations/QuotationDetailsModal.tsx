@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quotation } from '../../types/quotation';
 import { generateQuotationPDF } from '../../utils/pdfGenerator';
+import PortalModal from '../common/PortalModal';
 
 interface QuotationDetailsModalProps {
   quotation: Quotation | null;
@@ -83,21 +84,20 @@ export default function QuotationDetailsModal({ quotation, onClose, onEdit }: Qu
   };
 
   return (
-    <>
-      {/* Backdrop del modal */}
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+    <PortalModal isOpen={true} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div
         className="modal fade show"
         style={{
           display: 'block',
-          zIndex: 1055,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%'
+          zIndex: 1055
         }}
         tabIndex={-1}
       >
@@ -259,6 +259,6 @@ export default function QuotationDetailsModal({ quotation, onClose, onEdit }: Qu
           </div>
         </div>
       </div>
-    </>
+    </PortalModal>
   );
 } 

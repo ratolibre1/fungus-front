@@ -349,3 +349,64 @@ a.fungus-link:hover {
   /* Microsoft Edge */
   color: var(--fungus-gray-400) !important;
 }
+
+/* ==========================================
+   CORRECCIÓN GLOBAL DE BACKDROP PARA MODALES
+   ========================================== */
+
+/* El problema real: los modales se renderizan dentro de <main> que es una columna Bootstrap
+   Necesitamos que cubran TODO el viewport, no solo su contenedor padre */
+
+/* Backdrop universal para modales: siempre cubre todo el viewport */
+.modal-backdrop,
+div[class*="modal-backdrop"],
+div[style*="rgba(0,0,0,0.5)"],
+div[style*="zIndex: 1050"],
+div[style*="z-index: 1050"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 9998 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  /* Forzar que se posicione respecto al viewport, no al contenedor padre */
+  transform: none !important;
+}
+
+/* El modal mismo también debe posicionarse respecto al viewport completo */
+.modal,
+.modal.show,
+.modal.fade.show,
+div[class*="modal"][style*="display: block"],
+div[style*="zIndex: 1055"],
+div[style*="z-index: 1055"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 9999 !important;
+  /* Forzar que se posicione respecto al viewport, no al contenedor padre */
+  transform: none !important;
+}
+
+/* Asegurar que el modal-dialog esté centrado en el viewport completo */
+.modal .modal-dialog,
+.modal-dialog {
+  margin: auto !important;
+  position: relative !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  max-height: calc(100vh - 2rem) !important;
+}

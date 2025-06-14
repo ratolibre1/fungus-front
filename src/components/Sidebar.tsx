@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoImage from '../assets/images/logo.png';
+import { Z_INDEX } from '../utils/constants';
 
 interface User {
   _id: string;
@@ -73,7 +74,7 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
   const isUser = user?.role === 'user';
 
   return (
-    <div className={sidebarClasses} style={{ minHeight: '100vh', backgroundColor: '#055C2A', zIndex: 1030 }}>
+    <div className={sidebarClasses} style={{ minHeight: '100vh', backgroundColor: '#055C2A', zIndex: Z_INDEX.SIDEBAR }}>
       <div className="position-sticky pt-3">
         <div className="px-3 py-4 text-white">
           <div className="text-center mb-3">

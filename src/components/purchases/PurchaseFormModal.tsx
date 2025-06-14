@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PortalModal from '../common/PortalModal';
 import { Purchase, DocumentType } from '../../types/purchase';
 import { Supplier } from '../../types/supplier';
 import { Consumable } from '../../types/consumable';
@@ -660,21 +661,20 @@ export default function PurchaseFormModal({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop del modal */}
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+    <PortalModal isOpen={isOpen} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div
         className="modal fade show"
         style={{
           display: 'block',
-          zIndex: 1055,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%'
+          zIndex: 1055
         }}
         tabIndex={-1}
       >
@@ -943,6 +943,6 @@ export default function PurchaseFormModal({
           </div>
         </div>
       </div>
-    </>
+    </PortalModal>
   );
 } 

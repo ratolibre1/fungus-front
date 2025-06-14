@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import PortalModal from '../common/PortalModal';
 import { Sale, DocumentType } from '../../types/sale';
 import { Client } from '../../types/client';
 import { Product } from '../../types/product';
 import { getClients } from '../../services/clientService';
 import { getProducts } from '../../services/productService';
 import { previewSale } from '../../services/saleService';
+import { Z_INDEX } from '../../utils/constants';
 
 interface SaleFormData {
   counterparty: string;
@@ -121,9 +123,8 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
 
       {isOpen && (
         <div
-          className="position-fixed mt-1 bg-white"
+          className="position-fixed mt-1 bg-white z-dropdown"
           style={{
-            zIndex: 1060,
             minWidth: '300px',
             maxWidth: '500px',
             left: 'auto',
@@ -179,7 +180,7 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
       {isOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 1059 }}
+          style={{ zIndex: Z_INDEX.OVERLAY }}
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -281,9 +282,8 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
 
       {isOpen && (
         <div
-          className="position-fixed mt-1 bg-white"
+          className="position-fixed mt-1 bg-white z-dropdown"
           style={{
-            zIndex: 1070,
             minWidth: '400px',
             maxWidth: '600px',
             left: 'auto',
@@ -335,7 +335,7 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
       {isOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 1069 }}
+          style={{ zIndex: Z_INDEX.OVERLAY }}
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -659,21 +659,20 @@ export default function SaleFormModal({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop del modal */}
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+    <PortalModal isOpen={isOpen} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div
         className="modal fade show"
         style={{
           display: 'block',
-          zIndex: 1055,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%'
+          zIndex: 1055
         }}
         tabIndex={-1}
       >
@@ -930,6 +929,6 @@ export default function SaleFormModal({
           </div>
         </div>
       </div>
-    </>
+    </PortalModal>
   );
 } 

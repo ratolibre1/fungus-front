@@ -5,6 +5,7 @@ import { Product } from '../../types/product';
 import { getClients } from '../../services/clientService';
 import { getProducts } from '../../services/productService';
 import { previewQuotation } from '../../services/quotationService';
+import PortalModal from '../common/PortalModal';
 
 interface QuotationFormData {
   counterparty: string;
@@ -660,21 +661,20 @@ export default function QuotationFormModal({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop del modal */}
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+    <PortalModal isOpen={isOpen} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div
         className="modal fade show"
         style={{
           display: 'block',
-          zIndex: 1055,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%'
+          zIndex: 1055
         }}
         tabIndex={-1}
       >
@@ -944,6 +944,6 @@ export default function QuotationFormModal({
           </div>
         </div>
       </div>
-    </>
+    </PortalModal>
   );
 } 

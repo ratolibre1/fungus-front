@@ -10,6 +10,7 @@ import { formatRut } from '../utils/validators';
 import ClientModal from '../components/ClientModal';
 import BuyersBackground from '../components/BuyersBackground';
 import { generateClientLabelPDF } from '../components/PrintLabel';
+import PortalModal from '../components/common/PortalModal';
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -147,7 +148,7 @@ export default function ClientDetail() {
   // Mapear estado del backend a texto y color para badges
   const getStatusInfo = (status: string) => {
     // Los estados pueden venir en inglés del backend o ya traducidos del resumen
-    const statusMap = {
+    const statusMap: Record<string, { text: string; color: string }> = {
       // Estados del backend (inglés)
       'paid': { text: 'Pagada', color: 'bg-success' },
       'pending': { text: 'Pendiente', color: 'bg-warning' },
@@ -256,7 +257,7 @@ export default function ClientDetail() {
       await addSupplierRole(id);
       await loadClientDetail(); // Recargar datos
       setShowRoleConfirm({ type: null, show: false });
-    } catch (err) {
+    } catch {
       setError('Error al activar como proveedor');
     }
   };
@@ -268,7 +269,7 @@ export default function ClientDetail() {
       await removeSupplierRole(id);
       await loadClientDetail(); // Recargar datos  
       setShowRoleConfirm({ type: null, show: false });
-    } catch (err) {
+    } catch {
       setError('Error al quitar rol de proveedor');
     }
   };
@@ -280,7 +281,7 @@ export default function ClientDetail() {
       await removeCustomerRole(id);
       // Redirigir a lista de clientes ya que se quitó el rol
       navigate('/compradores');
-    } catch (err) {
+    } catch {
       setError('Error al quitar rol de cliente');
     }
   };
@@ -594,7 +595,7 @@ export default function ClientDetail() {
                                   </td>
                                   <td>{item.quantity}</td>
                                   <td>{formatPrice(item.unitPrice)}</td>
-                                  <td>{formatPrice((item as any).subtotal)}</td>
+                                  <td>{formatPrice((item as any).subtotal || item.quantity * item.unitPrice)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -646,21 +647,20 @@ export default function ClientDetail() {
 
             {/* Modal para detalle de venta */}
             {showSaleDetailModal && selectedTransaction && (
-              <>
-                {/* Backdrop del modal */}
-                <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+              <PortalModal isOpen={true} onClose={closeSaleDetailModal}>
+                {/* Backdrop */}
+                <div
+                  className="modal-backdrop fade show"
+                  style={{ zIndex: 1050 }}
+                  onClick={closeSaleDetailModal}
+                />
 
                 {/* Modal */}
                 <div
                   className="modal fade show"
                   style={{
                     display: 'block',
-                    zIndex: 1055,
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%'
+                    zIndex: 1055
                   }}
                   tabIndex={-1}
                 >
@@ -668,7 +668,7 @@ export default function ClientDetail() {
                     <div className="modal-content">
                       <div className="modal-header">
                         <h5 className="modal-title">
-                          Detalles de Venta {selectedTransaction.documentNumber}
+                          Detalles de {selectedTransaction.documentType === 'sale' ? 'Venta' : 'Compra'} {selectedTransaction.documentNumber}
                         </h5>
                         <button
                           type="button"
@@ -731,7 +731,7 @@ export default function ClientDetail() {
                                   <td className="text-end">{item.quantity}</td>
                                   <td className="text-end">{formatPrice(item.unitPrice)}</td>
                                   <td className="text-end">{formatPrice((item as any).discount || 0)}</td>
-                                  <td className="text-end">{formatPrice((item as any).subtotal)}</td>
+                                  <td className="text-end">{formatPrice((item as any).subtotal || item.quantity * item.unitPrice)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -753,12 +753,12 @@ export default function ClientDetail() {
                         </div>
 
                         {/* Observaciones */}
-                        {selectedTransaction.observations && (
+                        {(selectedTransaction as any).observations && (
                           <div className="mt-4">
                             <h6 className="mb-3">Observaciones</h6>
                             <div className="alert alert-light border" role="alert">
                               <i className="bi bi-info-circle me-2"></i>
-                              {selectedTransaction.observations}
+                              {(selectedTransaction as any).observations}
                             </div>
                           </div>
                         )}
@@ -783,14 +783,28 @@ export default function ClientDetail() {
                     </div>
                   </div>
                 </div>
-              </>
+              </PortalModal>
             )}
 
             {/* Modal de confirmación de roles */}
             {showRoleConfirm.show && (
-              <>
-                <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-                <div className="modal fade show" style={{ display: 'block', zIndex: 1055 }}>
+              <PortalModal isOpen={true} onClose={() => setShowRoleConfirm({ type: null, show: false })}>
+                {/* Backdrop */}
+                <div
+                  className="modal-backdrop fade show"
+                  style={{ zIndex: 1050 }}
+                  onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                />
+
+                {/* Modal */}
+                <div
+                  className="modal fade show"
+                  style={{
+                    display: 'block',
+                    zIndex: 1055
+                  }}
+                  tabIndex={-1}
+                >
                   <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                       <div className="modal-header">
@@ -803,6 +817,7 @@ export default function ClientDetail() {
                           type="button"
                           className="btn-close"
                           onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                          aria-label="Cerrar"
                         />
                       </div>
                       <div className="modal-body">
@@ -851,7 +866,7 @@ export default function ClientDetail() {
                     </div>
                   </div>
                 </div>
-              </>
+              </PortalModal>
             )}
           </>
         ) : (

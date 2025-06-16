@@ -1,5 +1,5 @@
 import { Purchase, PurchaseStatus, getPurchaseStatusLabel, getPurchaseStatusColor } from '../../types/purchase';
-import { formatPurchaseAmount } from '../../services/purchaseService';
+import { formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
 import PortalModal from '../common/PortalModal';
 
 interface PurchaseDetailsModalProps {
@@ -163,24 +163,24 @@ export default function PurchaseDetailsModal({ purchase, onClose, onEdit }: Purc
                           )}
                         </td>
                         <td className="text-end">{item.quantity}</td>
-                        <td className="text-end">{formatPurchaseAmount(item.unitPrice)}</td>
-                        <td className="text-end">{formatPurchaseAmount(item.discount)}</td>
-                        <td className="text-end">{formatPurchaseAmount(item.subtotal)}</td>
+                        <td className="text-end">{formatCurrency(item.unitPrice)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.discount)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="table-light">
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Neto</strong></td>
-                      <td className="text-end">{formatPurchaseAmount(purchase.netAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(purchase.netAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>IVA (19%)</strong></td>
-                      <td className="text-end">{formatPurchaseAmount(purchase.taxAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(purchase.taxAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Total</strong></td>
-                      <td className="text-end">{formatPurchaseAmount(purchase.totalAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(purchase.totalAmount)}</td>
                     </tr>
                   </tfoot>
                 </table>

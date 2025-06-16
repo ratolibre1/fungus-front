@@ -146,4 +146,36 @@ export const formatPhone = (phone: string): string => {
   }
 
   return formatted;
+};
+
+/**
+ * Formatea una cantidad monetaria en pesos chilenos respetando decimales
+ * @param amount Cantidad a formatear
+ * @returns Cantidad formateada (Ej: $1.234 o $1.234,50)
+ */
+export const formatCurrency = (amount: number): string => {
+  // Si el número tiene decimales significativos, los mostramos
+  const hasDecimals = amount % 1 !== 0;
+
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
+/**
+ * Formatea una cantidad monetaria en pesos chilenos SIN decimales
+ * Para usar en subtotales y totales de documentos CVC
+ * @param amount Cantidad a formatear
+ * @returns Cantidad formateada sin decimales (Ej: $1.234)
+ */
+export const formatCurrencyNoDecimals = (amount: number): string => {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Math.round(amount));
 }; 

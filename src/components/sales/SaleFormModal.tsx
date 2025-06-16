@@ -6,6 +6,7 @@ import { Product } from '../../types/product';
 import { getClients } from '../../services/clientService';
 import { getProducts } from '../../services/productService';
 import { previewSale } from '../../services/saleService';
+import { compareStringsSpanish, formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
 import { Z_INDEX } from '../../utils/constants';
 
 interface SaleFormData {
@@ -65,7 +66,7 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.rut.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => compareStringsSpanish(a.name, b.name));
 
   const selectedClient = clients.find(c => c._id === value);
 
@@ -213,7 +214,7 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => compareStringsSpanish(a.name, b.name));
 
   const selectedProduct = products.find(p => p._id === value);
 
@@ -377,6 +378,9 @@ export default function SaleFormModal({
     totalAmount: number;
   } | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+
+  // Estados para manejar inputs numéricos con comas decimales
+  const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -644,17 +648,89 @@ export default function SaleFormModal({
     onSubmit(submitData);
   };
 
-  // Formatear precio
-  const formatPrice = (amount: number): string => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
   // Usar datos del preview si están disponibles, sino calcular localmente
   const totalsToShow = previewData || calculateTotals();
+
+  // Formatear número para mostrar en el input
+  const formatInputNumber = (value: number | null): string => {
+    // Si value no es un número o es undefined/null, retornar vacío
+    if (value === null || value === undefined || isNaN(Number(value))) {
+      return '';
+    }
+
+    // Solo retornar vacío si es exactamente cero, no para valores "falsy"
+    if (value === 0) {
+      return '';
+    }
+
+    // Convertir a string con coma decimal
+    const formattedValue = value.toString().replace('.', ',');
+    return formattedValue;
+  };
+
+  // Manejar cambios en campos numéricos con soporte para comas
+  const handleNumericChange = (index: number, field: keyof SaleItemForm, value: string) => {
+    const inputKey = `${field}_${index}`;
+
+    // Guardar el valor exactamente como se escribió
+    setInputValues(prev => ({
+      ...prev,
+      [inputKey]: value
+    }));
+
+    // Sólo intentar convertir a número si tiene un formato válido
+    // Esto permite valores parciales como "1234," durante la edición
+    if (value === '' || value === '-' || value === ',' || value === '.' || value.endsWith(',') || value.endsWith('.')) {
+      // Para valores parciales/vacíos, guardar cero
+      updateItem(index, field, 0);
+    } else {
+      // Para valores completos que se pueden convertir a número
+      const numericValue = value.replace(',', '.');
+      const parsedValue = Number(numericValue);
+
+      if (!isNaN(parsedValue)) {
+        updateItem(index, field, parsedValue);
+      }
+    }
+  };
+
+  // Validar input numérico
+  const handleNumericKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const currentValue = e.currentTarget.value;
+
+    // Permitir teclas de navegación y edición
+    const navigationKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+    if (navigationKeys.includes(e.key)) {
+      return;
+    }
+
+    // Permitir números
+    if (/[0-9]/.test(e.key)) {
+      return;
+    }
+
+    // Permitir guión solo al principio y si no hay ya uno
+    if (e.key === '-') {
+      if (e.currentTarget.selectionStart === 0 && !currentValue.includes('-')) {
+        return;
+      }
+      e.preventDefault();
+      return;
+    }
+
+    // Manejar punto y coma como decimales
+    if (e.key === '.' || e.key === ',') {
+      // Si ya hay un punto o una coma, no permitir otro
+      if (currentValue.includes('.') || currentValue.includes(',')) {
+        e.preventDefault();
+        return;
+      }
+      return;
+    }
+
+    // Bloquear cualquier otra tecla
+    e.preventDefault();
+  };
 
   if (!isOpen) return null;
 
@@ -800,12 +876,13 @@ export default function SaleFormModal({
                                   </td>
                                   <td>
                                     <input
-                                      type="number"
+                                      type="text"
                                       className={`form-control ${errors[`item_${index}_quantity`] ? 'is-invalid' : ''}`}
-                                      value={item.quantity}
-                                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
-                                      min="1"
+                                      value={inputValues[`quantity_${index}`] !== undefined ? inputValues[`quantity_${index}`] : formatInputNumber(item.quantity)}
+                                      onChange={(e) => handleNumericChange(index, 'quantity', e.target.value)}
+                                      onKeyDown={handleNumericKeyDown}
                                       disabled={loading}
+                                      placeholder="Ej: 5"
                                     />
                                     {errors[`item_${index}_quantity`] && (
                                       <div className="text-danger small">{errors[`item_${index}_quantity`]}</div>
@@ -813,12 +890,13 @@ export default function SaleFormModal({
                                   </td>
                                   <td>
                                     <input
-                                      type="number"
+                                      type="text"
                                       className={`form-control ${errors[`item_${index}_unitPrice`] ? 'is-invalid' : ''}`}
-                                      value={item.unitPrice}
-                                      onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                      min="0"
+                                      value={inputValues[`unitPrice_${index}`] !== undefined ? inputValues[`unitPrice_${index}`] : formatInputNumber(item.unitPrice)}
+                                      onChange={(e) => handleNumericChange(index, 'unitPrice', e.target.value)}
+                                      onKeyDown={handleNumericKeyDown}
                                       disabled={loading}
+                                      placeholder="Ej: 15990"
                                     />
                                     {errors[`item_${index}_unitPrice`] && (
                                       <div className="text-danger small">{errors[`item_${index}_unitPrice`]}</div>
@@ -826,19 +904,20 @@ export default function SaleFormModal({
                                   </td>
                                   <td>
                                     <input
-                                      type="number"
+                                      type="text"
                                       className={`form-control ${errors[`item_${index}_discount`] ? 'is-invalid' : ''}`}
-                                      value={item.discount}
-                                      onChange={(e) => updateItem(index, 'discount', parseFloat(e.target.value) || 0)}
-                                      min="0"
+                                      value={inputValues[`discount_${index}`] !== undefined ? inputValues[`discount_${index}`] : formatInputNumber(item.discount)}
+                                      onChange={(e) => handleNumericChange(index, 'discount', e.target.value)}
+                                      onKeyDown={handleNumericKeyDown}
                                       disabled={loading}
+                                      placeholder="Ej: 1000"
                                     />
                                     {errors[`item_${index}_discount`] && (
                                       <div className="text-danger small">{errors[`item_${index}_discount`]}</div>
                                     )}
                                   </td>
                                   <td className="text-end">
-                                    <strong>{formatPrice(item.subtotal)}</strong>
+                                    <strong>{formatCurrencyNoDecimals(item.subtotal)}</strong>
                                   </td>
                                   <td className="text-center">
                                     <button
@@ -877,15 +956,15 @@ export default function SaleFormModal({
                                 <tbody>
                                   <tr>
                                     <td><strong>Neto:</strong></td>
-                                    <td className="text-end"><strong>{formatPrice(totalsToShow.netAmount)}</strong></td>
+                                    <td className="text-end"><strong>{formatCurrencyNoDecimals(totalsToShow.netAmount)}</strong></td>
                                   </tr>
                                   <tr>
                                     <td><strong>IVA ({(formData.taxRate * 100).toFixed(0)}%):</strong></td>
-                                    <td className="text-end"><strong>{formatPrice(totalsToShow.taxAmount)}</strong></td>
+                                    <td className="text-end"><strong>{formatCurrencyNoDecimals(totalsToShow.taxAmount)}</strong></td>
                                   </tr>
                                   <tr className="table-success">
                                     <td><strong>Total:</strong></td>
-                                    <td className="text-end"><strong>{formatPrice(totalsToShow.totalAmount)}</strong></td>
+                                    <td className="text-end"><strong>{formatCurrencyNoDecimals(totalsToShow.totalAmount)}</strong></td>
                                   </tr>
                                 </tbody>
                               </table>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sale, SalePagination, SaleStatus, DocumentType, getSaleStatusLabel, getSaleStatusColor } from '../../types/sale';
-import { formatSaleAmount } from '../../services/saleService';
+import { formatCurrencyNoDecimals } from '../../utils/validators';
 
 interface SaleTableProps {
   sales: Sale[];
@@ -383,7 +383,7 @@ export default function SaleTable({
                       <span className="text-muted">ID: {sale.counterparty}</span>
                     )}
                   </td>
-                  <td className="text-end">{formatSaleAmount(sale.totalAmount)}</td>
+                  <td className="text-end">{formatCurrencyNoDecimals(sale.totalAmount)}</td>
                   <td>{renderStatusDropdown(sale)}</td>
                   <td className="text-center">
                     {renderActionButtons(sale)}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quotation } from '../../types/quotation';
 import { generateQuotationPDF } from '../../utils/pdfGenerator';
+import { formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
 import PortalModal from '../common/PortalModal';
 
 interface QuotationDetailsModalProps {
@@ -11,15 +12,6 @@ interface QuotationDetailsModalProps {
 
 export default function QuotationDetailsModal({ quotation, onClose, onEdit }: QuotationDetailsModalProps) {
   if (!quotation) return null;
-
-  // Función para formatear moneda
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   // Formatear fecha sin horario (solo día/mes/año)
   const formatDate = (dateString: string) => {
@@ -195,23 +187,23 @@ export default function QuotationDetailsModal({ quotation, onClose, onEdit }: Qu
                         </td>
                         <td className="text-end">{item.quantity}</td>
                         <td className="text-end">{formatCurrency(item.unitPrice)}</td>
-                        <td className="text-end">{formatCurrency(item.discount)}</td>
-                        <td className="text-end">{formatCurrency(item.subtotal)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.discount)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="table-light">
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Neto</strong></td>
-                      <td className="text-end">{formatCurrency(quotation.netAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(quotation.netAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>IVA (19%)</strong></td>
-                      <td className="text-end">{formatCurrency(quotation.taxAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(quotation.taxAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Total</strong></td>
-                      <td className="text-end">{formatCurrency(quotation.totalAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(quotation.totalAmount)}</td>
                     </tr>
                   </tfoot>
                 </table>

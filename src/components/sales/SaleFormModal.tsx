@@ -6,8 +6,7 @@ import { Product } from '../../types/product';
 import { getClients } from '../../services/clientService';
 import { getProducts } from '../../services/productService';
 import { previewSale } from '../../services/saleService';
-import { compareStringsSpanish, formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
-import { Z_INDEX } from '../../utils/constants';
+import { compareStringsSpanish, formatCurrencyNoDecimals } from '../../utils/validators';
 
 interface SaleFormData {
   counterparty: string;
@@ -124,8 +123,9 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
 
       {isOpen && (
         <div
-          className="position-fixed mt-1 bg-white z-dropdown"
+          className="position-fixed mt-1 bg-white"
           style={{
+            zIndex: 1060,
             minWidth: '300px',
             maxWidth: '500px',
             left: 'auto',
@@ -181,7 +181,7 @@ const ClientSearchSelector: React.FC<ClientSearchProps> = ({ clients, value, onC
       {isOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: Z_INDEX.OVERLAY }}
+          style={{ zIndex: 1059 }}
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -283,8 +283,9 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
 
       {isOpen && (
         <div
-          className="position-fixed mt-1 bg-white z-dropdown"
+          className="position-fixed mt-1 bg-white"
           style={{
+            zIndex: 1070,
             minWidth: '400px',
             maxWidth: '600px',
             left: 'auto',
@@ -336,7 +337,7 @@ const ProductSearchSelector: React.FC<ProductSearchProps> = ({
       {isOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: Z_INDEX.OVERLAY }}
+          style={{ zIndex: 1069 }}
           onClick={() => setIsOpen(false)}
         />
       )}

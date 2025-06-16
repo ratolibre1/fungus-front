@@ -1,5 +1,6 @@
 import { Log, TransactionLogDetails, ContactLogDetails, ItemLogDetails } from '../../types/Log';
 import { formatDateTime } from '../../utils/dateUtils';
+import PortalModal from '../common/PortalModal';
 import { useEffect } from 'react';
 
 interface LogDetailsModalProps {
@@ -548,65 +549,87 @@ export default function LogDetailsModal({ log, onClose }: LogDetailsModalProps) 
   };
 
   return (
-    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-scrollable modal-xl">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
-              Detalles del registro
-              <span className="ms-2 badge" style={{ backgroundColor: '#099347' }}>ID: {log._id}</span>
-            </h5>
-            <button type="button" className="btn-close" onClick={onClose} aria-label="Cerrar"></button>
-          </div>
-          <div className="modal-body">
-            {/* Información general del log */}
-            <div className="card mb-4">
-              <div className="card-header bg-dark text-white">
-                <h6 className="mb-0">ℹ️ Información General</h6>
-              </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-6">
-                    <p><strong>Fecha y hora:</strong> {formatDateTime(log.createdAt)}</p>
-                    <p><strong>Operación:</strong>
-                      <span className={`badge ms-1 ${log.operation === 'create' ? 'bg-success' :
-                        log.operation === 'update' ? 'bg-primary' :
-                          log.operation === 'delete' ? 'bg-danger' : 'bg-secondary'
-                        }`}>
-                        {operationLabel}
-                      </span>
-                    </p>
-                    <p><strong>Colección:</strong> <span className="badge bg-light text-dark border">{collectionLabel}</span></p>
-                  </div>
-                  <div className="col-md-6">
-                    <p><strong>ID del documento:</strong> <code>{log.documentId}</code></p>
-                    <p><strong>Usuario:</strong></p>
-                    {typeof log.userId === 'object' && log.userId ? (
-                      <div className="ms-3">
-                        <p className="mb-0 fw-bold">{log.userId.name}</p>
-                        <p className="mb-0 text-muted small">{log.userId.email}</p>
-                        <p className="mb-0 text-muted small">ID: {log.userId._id}</p>
-                      </div>
-                    ) : (
-                      <div className="ms-3">
-                        <p className="mb-0">ID: {log.userId}</p>
-                      </div>
-                    )}
+    <PortalModal isOpen={true} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className="modal fade show"
+        style={{
+          display: 'block',
+          zIndex: 1055
+        }}
+        tabIndex={-1}
+      >
+        <div className="modal-dialog modal-xl modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">
+                <i className="bi bi-file-text-fill me-2"></i>
+                Detalles del Registro de Actividad
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+                aria-label="Cerrar"
+              />
+            </div>
+            <div className="modal-body">
+              {/* Información general del log */}
+              <div className="card mb-4">
+                <div className="card-header bg-dark text-white">
+                  <h6 className="mb-0">ℹ️ Información General</h6>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <p><strong>Fecha y hora:</strong> {formatDateTime(log.createdAt)}</p>
+                      <p><strong>Operación:</strong>
+                        <span className={`badge ms-1 ${log.operation === 'create' ? 'bg-success' :
+                          log.operation === 'update' ? 'bg-primary' :
+                            log.operation === 'delete' ? 'bg-danger' : 'bg-secondary'
+                          }`}>
+                          {operationLabel}
+                        </span>
+                      </p>
+                      <p><strong>Colección:</strong> <span className="badge bg-light text-dark border">{collectionLabel}</span></p>
+                    </div>
+                    <div className="col-md-6">
+                      <p><strong>ID del documento:</strong> <code>{log.documentId}</code></p>
+                      <p><strong>Usuario:</strong></p>
+                      {typeof log.userId === 'object' && log.userId ? (
+                        <div className="ms-3">
+                          <p className="mb-0 fw-bold">{log.userId.name}</p>
+                          <p className="mb-0 text-muted small">{log.userId.email}</p>
+                          <p className="mb-0 text-muted small">ID: {log.userId._id}</p>
+                        </div>
+                      ) : (
+                        <div className="ms-3">
+                          <p className="mb-0">ID: {log.userId}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Detalles enriquecidos */}
-            {renderEnrichedDetails()}
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cerrar
-            </button>
+              {/* Detalles enriquecidos */}
+              {renderEnrichedDetails()}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PortalModal>
   );
 } 

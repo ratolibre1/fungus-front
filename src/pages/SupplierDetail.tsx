@@ -9,6 +9,7 @@ import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../types
 import { formatRut } from '../utils/validators';
 import SupplierModal from '../components/SupplierModal';
 import SuppliersBackground from '../components/SuppliersBackground';
+import PortalModal from '../components/common/PortalModal';
 
 export default function SupplierDetail() {
   const { id } = useParams<{ id: string }>();
@@ -139,7 +140,7 @@ export default function SupplierDetail() {
   // Mapear estado del backend a texto y color para badges
   const getStatusInfo = (status: string) => {
     // Los estados pueden venir en inglés del backend o ya traducidos del resumen
-    const statusMap = {
+    const statusMap: Record<string, { text: string; color: string }> = {
       // Estados del backend (inglés)
       'paid': { text: 'Pagada', color: 'bg-success' },
       'pending': { text: 'Pendiente', color: 'bg-warning' },
@@ -218,7 +219,7 @@ export default function SupplierDetail() {
       await addCustomerRole(id);
       await loadSupplierDetail(); // Recargar datos
       setShowRoleConfirm({ type: null, show: false });
-    } catch (err) {
+    } catch {
       setError('Error al activar como comprador');
     }
   };
@@ -230,7 +231,7 @@ export default function SupplierDetail() {
       await removeCustomerRole(id);
       await loadSupplierDetail(); // Recargar datos  
       setShowRoleConfirm({ type: null, show: false });
-    } catch (err) {
+    } catch {
       setError('Error al quitar rol de comprador');
     }
   };
@@ -242,7 +243,7 @@ export default function SupplierDetail() {
       await removeSupplierRole(id);
       // Redirigir a lista de proveedores ya que se quitó el rol
       navigate('/proveedores');
-    } catch (err) {
+    } catch {
       setError('Error al quitar rol de proveedor');
     }
   };
@@ -614,21 +615,20 @@ export default function SupplierDetail() {
 
             {/* Modal para detalle de compra */}
             {showPurchaseDetailModal && selectedTransaction && (
-              <>
-                {/* Backdrop del modal */}
-                <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+              <PortalModal isOpen={true} onClose={closePurchaseDetailModal}>
+                {/* Backdrop */}
+                <div
+                  className="modal-backdrop fade show"
+                  style={{ zIndex: 1050 }}
+                  onClick={closePurchaseDetailModal}
+                />
 
                 {/* Modal */}
                 <div
                   className="modal fade show"
                   style={{
                     display: 'block',
-                    zIndex: 1055,
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%'
+                    zIndex: 1055
                   }}
                   tabIndex={-1}
                 >
@@ -744,14 +744,28 @@ export default function SupplierDetail() {
                     </div>
                   </div>
                 </div>
-              </>
+              </PortalModal>
             )}
 
             {/* Modal de confirmación de roles */}
             {showRoleConfirm.show && (
-              <>
-                <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-                <div className="modal fade show" style={{ display: 'block', zIndex: 1055 }}>
+              <PortalModal isOpen={true} onClose={() => setShowRoleConfirm({ type: null, show: false })}>
+                {/* Backdrop */}
+                <div
+                  className="modal-backdrop fade show"
+                  style={{ zIndex: 1050 }}
+                  onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                />
+
+                {/* Modal */}
+                <div
+                  className="modal fade show"
+                  style={{
+                    display: 'block',
+                    zIndex: 1055
+                  }}
+                  tabIndex={-1}
+                >
                   <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                       <div className="modal-header">
@@ -764,6 +778,7 @@ export default function SupplierDetail() {
                           type="button"
                           className="btn-close"
                           onClick={() => setShowRoleConfirm({ type: null, show: false })}
+                          aria-label="Cerrar"
                         />
                       </div>
                       <div className="modal-body">
@@ -812,7 +827,7 @@ export default function SupplierDetail() {
                     </div>
                   </div>
                 </div>
-              </>
+              </PortalModal>
             )}
           </>
         ) : (

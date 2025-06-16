@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Purchase, PurchasePagination, PurchaseStatus, DocumentType, getPurchaseStatusLabel, getPurchaseStatusColor } from '../../types/purchase';
-import { formatPurchaseAmount } from '../../services/purchaseService';
+import { formatCurrencyNoDecimals } from '../../utils/validators';
 
 interface PurchaseTableProps {
   purchases: Purchase[];
@@ -383,7 +383,7 @@ export default function PurchaseTable({
                       <span className="text-muted">ID: {purchase.counterparty}</span>
                     )}
                   </td>
-                  <td className="text-end">{formatPurchaseAmount(purchase.totalAmount)}</td>
+                  <td className="text-end">{formatCurrencyNoDecimals(purchase.totalAmount)}</td>
                   <td>{renderStatusDropdown(purchase)}</td>
                   <td className="text-center">
                     {renderActionButtons(purchase)}

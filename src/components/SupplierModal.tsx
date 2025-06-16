@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PortalModal from './common/PortalModal';
 import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../types/supplier';
 import { cleanRut, formatRut, validateRut, cleanPhone, formatPhone } from '../utils/validators';
 
@@ -296,136 +297,153 @@ export default function SupplierModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
-              {modalType === 'create' && 'Nuevo Proveedor'}
-              {modalType === 'edit' && 'Editar Proveedor'}
-              {modalType === 'delete' && '¿Eliminar Proveedor?'}
-              {modalType === 'view' && 'Detalles del Proveedor'}
-            </h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
-          <div className="modal-body">
-            {modalType === 'create' || modalType === 'edit' ? (
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Nombre <span style={{ color: '#dc3545' }}>*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleTextChange}
-                    required
-                    placeholder="Ej: Productos Naturales SPA"
-                  />
+    <PortalModal isOpen={isOpen} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className="modal fade show"
+        style={{
+          display: 'block',
+          zIndex: 1055
+        }}
+        tabIndex={-1}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">
+                {modalType === 'create' && 'Nuevo Proveedor'}
+                {modalType === 'edit' && 'Editar Proveedor'}
+                {modalType === 'delete' && '¿Eliminar Proveedor?'}
+                {modalType === 'view' && 'Detalles del Proveedor'}
+              </h5>
+              <button type="button" className="btn-close" onClick={onClose}></button>
+            </div>
+            <div className="modal-body">
+              {modalType === 'create' || modalType === 'edit' ? (
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label">Nombre <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleTextChange}
+                      required
+                      placeholder="Ej: Productos Naturales SPA"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">RUT <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="rut"
+                      value={formData.rut}
+                      onChange={handleRutChange}
+                      onKeyDown={handleRutKeyDown}
+                      required
+                      placeholder="Ej: 12.345.678-9"
+                    />
+                    {validationErrors.rut && (
+                      <small className="text-danger">{validationErrors.rut}</small>
+                    )}
+                    <small className="form-text text-muted d-block">Formato: 12.345.678-9</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleTextChange}
+                      required
+                      placeholder="Ej: contacto@proveedor.com"
+                    />
+                    {validationErrors.email && (
+                      <small className="text-danger">{validationErrors.email}</small>
+                    )}
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Teléfono <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handlePhoneChange}
+                      onKeyDown={handlePhoneKeyDown}
+                      required
+                      placeholder="Ej: 9 1234 5678"
+                    />
+                    {validationErrors.phone && (
+                      <small className="text-danger">{validationErrors.phone}</small>
+                    )}
+                    <small className="form-text text-muted d-block">Formato: 9 1234 5678</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Dirección <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="address"
+                      value={formData.address || ''}
+                      onChange={handleTextChange}
+                      required
+                      placeholder="Ej: Av. La Dehesa 123, Santiago"
+                    />
+                  </div>
+                </form>
+              ) : modalType === 'delete' ? (
+                <p>¿Estás seguro de que deseas eliminar a <strong>{selectedSupplier?.name}</strong>?</p>
+              ) : (
+                <div>
+                  <p><strong>Nombre:</strong> {selectedSupplier?.name}</p>
+                  <p><strong>RUT:</strong> {formatRut(selectedSupplier?.rut || '')}</p>
+                  <p><strong>Email:</strong> {selectedSupplier?.email}</p>
+                  <p><strong>Teléfono:</strong> {selectedSupplier?.phone ? formatPhone(selectedSupplier.phone) : 'No especificado'}</p>
+                  <p><strong>Dirección:</strong> {selectedSupplier?.address || 'No especificada'}</p>
+                  <p><strong>Creado:</strong> {selectedSupplier && new Date(selectedSupplier.createdAt).toLocaleDateString()}</p>
+                  <p><strong>Actualizado:</strong> {selectedSupplier && new Date(selectedSupplier.updatedAt).toLocaleDateString()}</p>
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">RUT <span style={{ color: '#dc3545' }}>*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="rut"
-                    value={formData.rut}
-                    onChange={handleRutChange}
-                    onKeyDown={handleRutKeyDown}
-                    required
-                    placeholder="Ej: 12.345.678-9"
-                  />
-                  {validationErrors.rut && (
-                    <small className="text-danger">{validationErrors.rut}</small>
-                  )}
-                  <small className="form-text text-muted d-block">Formato: 12.345.678-9</small>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Email <span style={{ color: '#dc3545' }}>*</span></label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleTextChange}
-                    required
-                    placeholder="Ej: contacto@proveedor.com"
-                  />
-                  {validationErrors.email && (
-                    <small className="text-danger">{validationErrors.email}</small>
-                  )}
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Teléfono <span style={{ color: '#dc3545' }}>*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handlePhoneChange}
-                    onKeyDown={handlePhoneKeyDown}
-                    required
-                    placeholder="Ej: 9 1234 5678"
-                  />
-                  {validationErrors.phone && (
-                    <small className="text-danger">{validationErrors.phone}</small>
-                  )}
-                  <small className="form-text text-muted d-block">Formato: 9 1234 5678</small>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Dirección <span style={{ color: '#dc3545' }}>*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="address"
-                    value={formData.address || ''}
-                    onChange={handleTextChange}
-                    required
-                    placeholder="Ej: Av. La Dehesa 123, Santiago"
-                  />
-                </div>
-              </form>
-            ) : modalType === 'delete' ? (
-              <p>¿Estás seguro de que deseas eliminar a <strong>{selectedSupplier?.name}</strong>?</p>
-            ) : (
-              <div>
-                <p><strong>Nombre:</strong> {selectedSupplier?.name}</p>
-                <p><strong>RUT:</strong> {formatRut(selectedSupplier?.rut || '')}</p>
-                <p><strong>Email:</strong> {selectedSupplier?.email}</p>
-                <p><strong>Teléfono:</strong> {selectedSupplier?.phone ? formatPhone(selectedSupplier.phone) : 'No especificado'}</p>
-                <p><strong>Dirección:</strong> {selectedSupplier?.address || 'No especificada'}</p>
-                <p><strong>Creado:</strong> {selectedSupplier && new Date(selectedSupplier.createdAt).toLocaleDateString()}</p>
-                <p><strong>Actualizado:</strong> {selectedSupplier && new Date(selectedSupplier.updatedAt).toLocaleDateString()}</p>
-              </div>
-            )}
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              {modalType === 'view' ? 'Cerrar' : 'Cancelar'}
-            </button>
-            {modalType !== 'view' && (
-              <button
-                type="button"
-                className={`btn ${modalType === 'delete' ? 'btn-danger' : ''}`}
-                style={modalType !== 'delete' ? { backgroundColor: '#099347', color: 'white' } : {}}
-                onClick={handleSubmit}
-                disabled={loading || ((modalType === 'create' || modalType === 'edit') && !isFormValid)}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Procesando...
-                  </>
-                ) : (
-                  modalType === 'create' ? 'Crear' :
-                    modalType === 'edit' ? 'Guardar cambios' :
-                      'Eliminar'
-                )}
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                {modalType === 'view' ? 'Cerrar' : 'Cancelar'}
               </button>
-            )}
+              {modalType !== 'view' && (
+                <button
+                  type="button"
+                  className={`btn ${modalType === 'delete' ? 'btn-danger' : ''}`}
+                  style={modalType !== 'delete' ? { backgroundColor: '#099347', color: 'white' } : {}}
+                  onClick={handleSubmit}
+                  disabled={loading || ((modalType === 'create' || modalType === 'edit') && !isFormValid)}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Procesando...
+                    </>
+                  ) : (
+                    modalType === 'create' ? 'Crear' :
+                      modalType === 'edit' ? 'Guardar cambios' :
+                        'Eliminar'
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PortalModal>
   );
 } 

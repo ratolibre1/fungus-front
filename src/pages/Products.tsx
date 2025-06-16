@@ -9,6 +9,7 @@ import {
 } from '../services/productService';
 import { Product, CreateProductRequest, UpdateProductRequest } from '../types/product';
 import { compareStringsSpanish } from '../utils/validators';
+import PortalModal from '../components/common/PortalModal';
 
 type ModalType = 'create' | 'edit' | 'delete' | 'view' | null;
 
@@ -432,124 +433,141 @@ export default function Products() {
 
         {/* Modal para Crear/Editar/Ver/Eliminar */}
         {modalType && (
-          <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {modalType === 'create' && 'Nuevo Producto'}
-                    {modalType === 'edit' && 'Editar Producto'}
-                    {modalType === 'delete' && '¿Eliminar Producto?'}
-                    {modalType === 'view' && 'Detalles del Producto'}
-                  </h5>
-                  <button type="button" className="btn-close" onClick={closeModal}></button>
-                </div>
-                <div className="modal-body">
-                  {modalType === 'create' || modalType === 'edit' ? (
-                    <form onSubmit={handleSubmit}>
-                      <div className="mb-3">
-                        <label className="form-label">Nombre <span style={{ color: '#dc3545' }}>*</span></label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleTextChange}
-                          required
-                          placeholder="Ej: Hongo Reishi"
-                        />
+          <PortalModal isOpen={true} onClose={closeModal}>
+            {/* Backdrop */}
+            <div
+              className="modal-backdrop fade show"
+              style={{ zIndex: 1050 }}
+              onClick={closeModal}
+            />
+
+            {/* Modal */}
+            <div
+              className="modal fade show"
+              style={{
+                display: 'block',
+                zIndex: 1055
+              }}
+              tabIndex={-1}
+            >
+              <div className="modal-dialog">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">
+                      {modalType === 'create' && 'Nuevo Producto'}
+                      {modalType === 'edit' && 'Editar Producto'}
+                      {modalType === 'delete' && '¿Eliminar Producto?'}
+                      {modalType === 'view' && 'Detalles del Producto'}
+                    </h5>
+                    <button type="button" className="btn-close" onClick={closeModal}></button>
+                  </div>
+                  <div className="modal-body">
+                    {modalType === 'create' || modalType === 'edit' ? (
+                      <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                          <label className="form-label">Nombre <span style={{ color: '#dc3545' }}>*</span></label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleTextChange}
+                            required
+                            placeholder="Ej: Hongo Reishi"
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Descripción</label>
+                          <textarea
+                            className="form-control"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleTextChange}
+                            placeholder="Ej: Grano colonizado"
+                            rows={3}
+                          ></textarea>
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Precio neto <span style={{ color: '#dc3545' }}>*</span></label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="netPrice"
+                            value={inputValues.netPrice}
+                            onChange={handleNumericChange}
+                            onKeyDown={handleNumericKeyDown}
+                            required
+                            placeholder="Ej: 7990"
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Stock</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="stock"
+                            value={inputValues.stock}
+                            onChange={handleNumericChange}
+                            onKeyDown={handleNumericKeyDown}
+                            placeholder="Ej: 50"
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label">Dimensiones</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            name="dimensions"
+                            value={formData.dimensions}
+                            onChange={handleTextChange}
+                            placeholder="Ej: 500 gr."
+                          />
+                        </div>
+                      </form>
+                    ) : modalType === 'delete' ? (
+                      <p>¿Estás seguro de que deseas eliminar <strong>{selectedProduct?.name}</strong>?</p>
+                    ) : (
+                      <div>
+                        <p><strong>Nombre:</strong> {selectedProduct?.name}</p>
+                        <p><strong>Descripción:</strong> {selectedProduct?.description || 'Sin descripción'}</p>
+                        <p><strong>Precio:</strong> {selectedProduct && formatPrice(selectedProduct.netPrice)}</p>
+                        <p><strong>Stock:</strong> {selectedProduct && selectedProduct.stock !== null ? `${selectedProduct.stock} unidades` : 'No especificado'}</p>
+                        {selectedProduct?.dimensions && <p><strong>Dimensiones:</strong> {selectedProduct.dimensions}</p>}
+                        <p><strong>Tipo:</strong> {selectedProduct?.itemType || 'No especificado'}</p>
+                        <p><strong>Creado:</strong> {selectedProduct && new Date(selectedProduct.createdAt).toLocaleDateString()}</p>
+                        <p><strong>Actualizado:</strong> {selectedProduct && new Date(selectedProduct.updatedAt).toLocaleDateString()}</p>
                       </div>
-                      <div className="mb-3">
-                        <label className="form-label">Descripción</label>
-                        <textarea
-                          className="form-control"
-                          name="description"
-                          value={formData.description}
-                          onChange={handleTextChange}
-                          placeholder="Ej: Grano colonizado"
-                          rows={3}
-                        ></textarea>
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Precio neto <span style={{ color: '#dc3545' }}>*</span></label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="netPrice"
-                          value={inputValues.netPrice}
-                          onChange={handleNumericChange}
-                          onKeyDown={handleNumericKeyDown}
-                          required
-                          placeholder="Ej: 7990"
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Stock</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="stock"
-                          value={inputValues.stock}
-                          onChange={handleNumericChange}
-                          onKeyDown={handleNumericKeyDown}
-                          placeholder="Ej: 50"
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Dimensiones</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="dimensions"
-                          value={formData.dimensions}
-                          onChange={handleTextChange}
-                          placeholder="Ej: 500 gr."
-                        />
-                      </div>
-                    </form>
-                  ) : modalType === 'delete' ? (
-                    <p>¿Estás seguro de que deseas eliminar <strong>{selectedProduct?.name}</strong>?</p>
-                  ) : (
-                    <div>
-                      <p><strong>Nombre:</strong> {selectedProduct?.name}</p>
-                      <p><strong>Descripción:</strong> {selectedProduct?.description || 'Sin descripción'}</p>
-                      <p><strong>Precio:</strong> {selectedProduct && formatPrice(selectedProduct.netPrice)}</p>
-                      <p><strong>Stock:</strong> {selectedProduct && selectedProduct.stock !== null ? `${selectedProduct.stock} unidades` : 'No especificado'}</p>
-                      {selectedProduct?.dimensions && <p><strong>Dimensiones:</strong> {selectedProduct.dimensions}</p>}
-                      <p><strong>Tipo:</strong> {selectedProduct?.itemType || 'No especificado'}</p>
-                      <p><strong>Creado:</strong> {selectedProduct && new Date(selectedProduct.createdAt).toLocaleDateString()}</p>
-                      <p><strong>Actualizado:</strong> {selectedProduct && new Date(selectedProduct.updatedAt).toLocaleDateString()}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                    {modalType === 'view' ? 'Cerrar' : 'Cancelar'}
-                  </button>
-                  {modalType !== 'view' && (
-                    <button
-                      type="button"
-                      className={`btn ${modalType === 'delete' ? 'btn-danger' : ''}`}
-                      style={modalType !== 'delete' ? { backgroundColor: '#099347', color: 'white' } : {}}
-                      onClick={handleSubmit}
-                      disabled={loading || ((modalType === 'create' || modalType === 'edit') && !isFormValid)}
-                    >
-                      {loading ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Procesando...
-                        </>
-                      ) : (
-                        modalType === 'create' ? 'Crear' :
-                          modalType === 'edit' ? 'Guardar cambios' :
-                            'Eliminar'
-                      )}
+                    )}
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                      {modalType === 'view' ? 'Cerrar' : 'Cancelar'}
                     </button>
-                  )}
+                    {modalType !== 'view' && (
+                      <button
+                        type="button"
+                        className={`btn ${modalType === 'delete' ? 'btn-danger' : ''}`}
+                        style={modalType !== 'delete' ? { backgroundColor: '#099347', color: 'white' } : {}}
+                        onClick={handleSubmit}
+                        disabled={loading || ((modalType === 'create' || modalType === 'edit') && !isFormValid)}
+                      >
+                        {loading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Procesando...
+                          </>
+                        ) : (
+                          modalType === 'create' ? 'Crear' :
+                            modalType === 'edit' ? 'Guardar cambios' :
+                              'Eliminar'
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </PortalModal>
         )}
       </div>
     </Layout>

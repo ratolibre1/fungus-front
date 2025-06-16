@@ -1,15 +1,6 @@
 import jsPDF from 'jspdf';
 import { Quotation } from '../types/quotation';
-
-// Función para formatear moneda
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
-};
+import { formatCurrency, formatCurrencyNoDecimals } from './validators';
 
 // Función para formatear fecha
 const formatDate = (dateString: string): string => {
@@ -232,10 +223,10 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
     doc.text(formatCurrency(item.unitPrice), 120, yPosition + 2, { align: 'center' });
 
     // Descuento (centrado)
-    doc.text(formatCurrency(item.discount), 145, yPosition + 2, { align: 'center' });
+    doc.text(formatCurrencyNoDecimals(item.discount), 145, yPosition + 2, { align: 'center' });
 
     // Subtotal (alineado a la derecha)
-    doc.text(formatCurrency(item.subtotal), 188, yPosition + 2, { align: 'right' });
+    doc.text(formatCurrencyNoDecimals(item.subtotal), 188, yPosition + 2, { align: 'right' });
 
     yPosition += 6;
 
@@ -284,12 +275,12 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
   doc.setFontSize(10);
   doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
   doc.text('Subtotal', totalsBoxX + 5, totalsY);
-  doc.text(formatCurrency(quotation.netAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
+  doc.text(formatCurrencyNoDecimals(quotation.netAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
 
   // IVA
   totalsY += 7;
   doc.text('IVA (19%)', totalsBoxX + 5, totalsY);
-  doc.text(formatCurrency(quotation.taxAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
+  doc.text(formatCurrencyNoDecimals(quotation.taxAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
 
   // Línea separadora
   totalsY += 5;
@@ -302,7 +293,7 @@ export const generateQuotationPDF = (quotation: Quotation): void => {
   doc.setFontSize(12);
   doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
   doc.text('Total', totalsBoxX + 5, totalsY);
-  doc.text(formatCurrency(quotation.totalAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
+  doc.text(formatCurrencyNoDecimals(quotation.totalAmount), totalsBoxX + totalsBoxWidth - 5, totalsY, { align: 'right' });
 
   // ========== FOOTER SECTION ==========
   yPosition = 270; // Posición fija para el footer

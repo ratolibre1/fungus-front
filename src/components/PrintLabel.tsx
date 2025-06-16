@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import jsPDF from 'jspdf';
+import PortalModal from './common/PortalModal';
 import { Client } from '../types/client';
 import { formatRut, formatPhone } from '../utils/validators';
 
@@ -100,66 +101,78 @@ export const generateClientLabelPDF = (client: Client): void => {
 };
 
 // Mantener el componente modal para compatibilidad hacia atrás (si se necesita)
-interface PrintLabelProps {
+interface PrintLabelModalProps {
   client: Client;
-  isOpen: boolean;
   onClose: () => void;
 }
 
-const PrintLabel: React.FC<PrintLabelProps> = ({ client, isOpen, onClose }) => {
-  if (!isOpen) return null;
+const PrintLabelModal: React.FC<PrintLabelModalProps> = ({ client, onClose }) => {
+  const [loading, setLoading] = useState(false);
 
-  const handleGeneratePDF = () => {
+  const handlePrint = async () => {
+    setLoading(true);
     try {
-      generateClientLabelPDF(client);
+      await generateClientLabelPDF(client);
+      // Cerrar modal automáticamente
+      onClose();
     } catch (error) {
       console.error('Error generando PDF:', error);
       alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    } finally {
+      setLoading(false);
     }
-    // Cerrar modal automáticamente
-    onClose();
   };
 
   return (
-    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Generar etiqueta PDF</h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body text-center">
-            <i className="bi bi-file-earmark-pdf-fill text-danger" style={{ fontSize: '3rem' }}></i>
-            <h6 className="mt-3 mb-3">Etiqueta para {client.name}</h6>
-            <p className="text-muted">
-              Se generará un PDF con dimensiones 85mm x 29mm optimizado para impresoras de etiquetas.
-            </p>
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleGeneratePDF}
-            >
-              <i className="bi bi-file-earmark-pdf me-1"></i> Generar PDF
-            </button>
+    <PortalModal isOpen={true} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className="modal fade show"
+        style={{
+          display: 'block',
+          zIndex: 1055
+        }}
+        tabIndex={-1}
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Generar etiqueta PDF</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+                aria-label="Cerrar"
+              />
+            </div>
+            <div className="modal-body text-center">
+              <p>¿Deseas generar la etiqueta PDF para <strong>{client.name}</strong>?</p>
+              {loading && (
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Generando...</span>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
+                Cancelar
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handlePrint} disabled={loading}>
+                {loading ? 'Generando...' : 'Generar PDF'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PortalModal>
   );
 };
 
-export default PrintLabel;
+export default PrintLabelModal;

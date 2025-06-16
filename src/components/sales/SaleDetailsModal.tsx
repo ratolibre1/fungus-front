@@ -1,6 +1,7 @@
 import { Sale, SaleStatus, getSaleStatusLabel, getSaleStatusColor } from '../../types/sale';
-import { formatSaleAmount } from '../../services/saleService';
+import { formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
 import { generateClientLabelPDF } from '../PrintLabel';
+import PortalModal from '../common/PortalModal';
 
 interface SaleDetailsModalProps {
   sale: Sale | null;
@@ -68,21 +69,20 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
   };
 
   return (
-    <>
-      {/* Backdrop del modal */}
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+    <PortalModal isOpen={true} onClose={onClose}>
+      {/* Backdrop */}
+      <div
+        className="modal-backdrop fade show"
+        style={{ zIndex: 1050 }}
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div
         className="modal fade show"
         style={{
           display: 'block',
-          zIndex: 1055,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%'
+          zIndex: 1055
         }}
         tabIndex={-1}
       >
@@ -176,24 +176,24 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
                           )}
                         </td>
                         <td className="text-end">{item.quantity}</td>
-                        <td className="text-end">{formatSaleAmount(item.unitPrice)}</td>
-                        <td className="text-end">{formatSaleAmount(item.discount)}</td>
-                        <td className="text-end">{formatSaleAmount(item.subtotal)}</td>
+                        <td className="text-end">{formatCurrency(item.unitPrice)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.discount)}</td>
+                        <td className="text-end">{formatCurrencyNoDecimals(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="table-light">
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Neto</strong></td>
-                      <td className="text-end">{formatSaleAmount(sale.netAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(sale.netAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>IVA (19%)</strong></td>
-                      <td className="text-end">{formatSaleAmount(sale.taxAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(sale.taxAmount)}</td>
                     </tr>
                     <tr>
                       <td colSpan={4} className="text-end"><strong>Total</strong></td>
-                      <td className="text-end">{formatSaleAmount(sale.totalAmount)}</td>
+                      <td className="text-end">{formatCurrencyNoDecimals(sale.totalAmount)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -242,6 +242,6 @@ export default function SaleDetailsModal({ sale, onClose, onEdit }: SaleDetailsM
           </div>
         </div>
       </div>
-    </>
+    </PortalModal>
   );
 } 

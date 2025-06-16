@@ -223,6 +223,95 @@ const Sidebar = ({ user, isOpen, onClose }: SidebarProps) => {
                   Compras
                 </a>
               </li>
+
+              {/* Calendarización - solo habilitado para administradores */}
+              <li className="nav-item">
+                {isAdmin ? (
+                  <a
+                    className={getLinkClasses('/calendarizacion')}
+                    style={getItemStyle('/calendarizacion')}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/calendarizacion');
+                      if (onClose) onClose();
+                    }}
+                  >
+                    <i className="bi bi-calendar3 me-2"></i>
+                    Calendarización
+                  </a>
+                ) : (
+                  <div
+                    className="nav-link d-flex align-items-center justify-content-between text-white opacity-50"
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      cursor: 'not-allowed'
+                    }}
+                    title="Funcionalidad disponible solo para administradores"
+                  >
+                    <div>
+                      <i className="bi bi-calendar3 me-2"></i>
+                      Calendarización
+                    </div>
+                    <span
+                      className="badge"
+                      style={{
+                        backgroundColor: '#FFC107',
+                        color: '#000',
+                        fontSize: '0.65rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Próximamente
+                    </span>
+                  </div>
+                )}
+              </li>
+
+              {/* Reportes - solo habilitado para administradores */}
+              <li className="nav-item">
+                {isAdmin ? (
+                  <a
+                    className={getLinkClasses('/reportes')}
+                    style={getItemStyle('/reportes')}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/reportes');
+                      if (onClose) onClose();
+                    }}
+                  >
+                    <i className="bi bi-graph-up me-2"></i>
+                    Reportes
+                  </a>
+                ) : (
+                  <div
+                    className="nav-link d-flex align-items-center justify-content-between text-white opacity-50"
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      cursor: 'not-allowed'
+                    }}
+                    title="Funcionalidad disponible solo para administradores"
+                  >
+                    <div>
+                      <i className="bi bi-graph-up me-2"></i>
+                      Reportes
+                    </div>
+                    <span
+                      className="badge"
+                      style={{
+                        backgroundColor: '#FFC107',
+                        color: '#000',
+                        fontSize: '0.65rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Próximamente
+                    </span>
+                  </div>
+                )}
+              </li>
+
               {/* Opción de logs solo visible para administradores */}
               {isAdmin && (
                 <li className="nav-item">

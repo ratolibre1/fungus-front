@@ -1,8 +1,32 @@
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useEffect, useState } from 'react';
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  // Cargar datos del usuario desde localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('fungus_user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  // Verificar si el usuario es admin
+  const isAdmin = user?.role === 'admin';
 
   const modules = [
     {
@@ -60,6 +84,24 @@ export default function Dashboard() {
       bgColor: '#e8f5e9', // Verde muy claro
       path: '/compras',
       enabled: true
+    },
+    {
+      title: 'Calendarización',
+      icon: '📅',
+      description: 'Programación y gestión de cronogramas',
+      bgColor: '#e8f5e9', // Verde muy claro
+      path: isAdmin ? '/calendarizacion' : null,
+      enabled: isAdmin,
+      adminOnly: true
+    },
+    {
+      title: 'Reportes',
+      icon: '📊',
+      description: 'Análisis y reportes de gestión',
+      bgColor: '#e8f5e9', // Verde muy claro
+      path: isAdmin ? '/reportes' : null,
+      enabled: isAdmin,
+      adminOnly: true
     }
   ];
 

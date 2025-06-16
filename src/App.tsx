@@ -13,6 +13,8 @@ import SalesPage from './pages/SalesPage'
 import PurchasesPage from './pages/PurchasesPage'
 import Help from './pages/Help'
 import Logs from './pages/Logs'
+import Calendarizacion from './pages/Calendarizacion'
+import Reportes from './pages/Reportes'
 import NotFound from './pages/NotFound'
 import SessionExpired from './pages/SessionExpired'
 import ForcePasswordChange from './pages/ForcePasswordChange'
@@ -149,6 +151,26 @@ function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
                 <Logs />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendarizacion"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <Calendarizacion />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reportes"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <Reportes />
               </RoleBasedRoute>
             </ProtectedRoute>
           }

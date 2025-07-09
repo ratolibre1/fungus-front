@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import PortalModal from '../common/PortalModal';
 import { Purchase, DocumentType } from '../../types/purchase';
-import { Supplier } from '../../types/supplier';
-import { Consumable } from '../../types/consumable';
-import { getSuppliers } from '../../services/supplierService';
-import { getConsumables } from '../../services/consumableService';
+import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from '../../types/supplier';
+import { Client } from '../../types/client';
+import { Consumable, CreateConsumableRequest } from '../../types/consumable';
+import { getSuppliers, createSupplier } from '../../services/supplierService';
+import { getClients } from '../../services/clientService';
+import { addSupplierRole } from '../../services/roleService';
+import { getConsumables, createConsumable } from '../../services/consumableService';
 import { previewPurchase } from '../../services/purchaseService';
-import { compareStringsSpanish, formatCurrency, formatCurrencyNoDecimals } from '../../utils/validators';
+import { compareStringsSpanish, formatCurrencyNoDecimals } from '../../utils/validators';
+import SupplierModal from '../SupplierModal';
 
 interface PurchaseFormData {
   counterparty: string;
@@ -52,20 +56,44 @@ interface PurchaseFormModalProps {
 // Componente de búsqueda para proveedores
 interface SupplierSearchProps {
   suppliers: Supplier[];
+  clients: Client[];
   value: string;
   onChange: (value: string) => void;
+  onSupplierCreated?: (supplier: Supplier) => void;
   disabled?: boolean;
   error?: string;
 }
 
-const SupplierSearchSelector: React.FC<SupplierSearchProps> = ({ suppliers, value, onChange, disabled, error }) => {
+const SupplierSearchSelector: React.FC<SupplierSearchProps> = ({
+  suppliers,
+  clients,
+  value,
+  onChange,
+  onSupplierCreated,
+  disabled,
+  error
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [addingRole, setAddingRole] = useState(false);
+
+  // Estados para SupplierModal
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [supplierModalLoading, setSupplierModalLoading] = useState(false);
 
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.rut.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => compareStringsSpanish(a.name, b.name));
+
+  // Buscar en clientes que coincidan con el término de búsqueda
+  const potentialClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.rut.toLowerCase().includes(searchTerm.toLowerCase())
+  ).filter(client =>
+    // Excluir si ya existe como proveedor
+    !suppliers.some(supplier => supplier.rut === client.rut)
+  );
 
   const selectedSupplier = suppliers.find(s => s._id === value);
 
@@ -81,83 +109,140 @@ const SupplierSearchSelector: React.FC<SupplierSearchProps> = ({ suppliers, valu
     setIsOpen(false);
   };
 
+  // Abrir SupplierModal para crear nuevo proveedor
+  const handleCreateNewSupplier = () => {
+    setIsOpen(false);
+    setShowSupplierModal(true);
+  };
+
+  // Manejar creación desde SupplierModal
+  const handleSupplierModalSubmit = async (formData: CreateSupplierRequest | UpdateSupplierRequest) => {
+    setSupplierModalLoading(true);
+    try {
+      // En modo create, formData será siempre CreateSupplierRequest
+      const response = await createSupplier(formData as CreateSupplierRequest);
+      if (response.success) {
+        onChange(response.data._id);
+        setShowSupplierModal(false);
+        setSearchTerm('');
+        if (onSupplierCreated) {
+          onSupplierCreated(response.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error creando proveedor:', error);
+    } finally {
+      setSupplierModalLoading(false);
+    }
+  };
+
+  // Agregar rol de proveedor a un cliente existente usando addSupplierRole
+  const handleAddSupplierRole = async (client: Client) => {
+    setAddingRole(true);
+    try {
+      const response = await addSupplierRole(client._id);
+      if (response.success) {
+        // Crear el objeto proveedor basado en el cliente para agregarlo localmente
+        const newSupplier: Supplier = {
+          _id: client._id, // Usar el mismo ID del cliente
+          name: client.name,
+          rut: client.rut,
+          email: client.email,
+          phone: client.phone,
+          address: client.address || '',
+          isCustomer: true,
+          needsReview: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        onChange(client._id);
+        setIsOpen(false);
+        setSearchTerm('');
+        if (onSupplierCreated) {
+          onSupplierCreated(newSupplier);
+        }
+      }
+    } catch (error) {
+      console.error('Error agregando rol de proveedor:', error);
+    } finally {
+      setAddingRole(false);
+    }
+  };
+
   const formatSupplierDisplay = (supplier: Supplier) => {
     return `${supplier.name} - ${supplier.rut}`;
   };
 
   return (
-    <div className="position-relative">
-      <div className="input-group">
-        <input
-          type="text"
-          className={`form-control ${error ? 'is-invalid' : ''}`}
-          placeholder="Buscar proveedor por nombre o RUT..."
-          value={selectedSupplier ? formatSupplierDisplay(selectedSupplier) : searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-          disabled={disabled}
-        />
-        {value && (
+    <>
+      <div className="position-relative">
+        <div className="input-group">
+          <input
+            type="text"
+            className={`form-control ${error ? 'is-invalid' : ''}`}
+            placeholder="Buscar proveedor por nombre o RUT..."
+            value={selectedSupplier ? formatSupplierDisplay(selectedSupplier) : searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            disabled={disabled}
+          />
+          {value && (
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleClear}
+              disabled={disabled}
+              title="Limpiar selección"
+            >
+              <i className="bi bi-x"></i>
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-outline-secondary"
-            onClick={handleClear}
+            onClick={() => setIsOpen(!isOpen)}
             disabled={disabled}
-            title="Limpiar selección"
           >
-            <i className="bi bi-x"></i>
+            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
           </button>
-        )}
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={() => setIsOpen(!isOpen)}
-          disabled={disabled}
-        >
-          <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
-        </button>
-      </div>
+        </div>
 
-      {isOpen && (
-        <div
-          className="position-fixed mt-1 bg-white"
-          style={{
-            zIndex: 1060,
-            minWidth: '300px',
-            maxWidth: '500px',
-            left: 'auto',
-            right: 'auto'
-          }}
-        >
-          <div className="card shadow-lg">
-            {/* Barra de búsqueda dentro del dropdown */}
-            <div className="card-header bg-success text-white p-2">
-              <div className="input-group input-group-sm">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Buscar proveedores por nombre o RUT..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus
-                />
-                <span className="input-group-text">
-                  <i className="bi bi-search"></i>
-                </span>
-              </div>
-            </div>
-
-            <div className="list-group list-group-flush" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-              {filteredSuppliers.length === 0 ? (
-                <div className="list-group-item text-center text-muted py-3">
-                  <i className="bi bi-search me-2"></i>
-                  No se encontraron proveedores
+        {isOpen && (
+          <div
+            className="position-fixed mt-1 bg-white"
+            style={{
+              zIndex: 1070,
+              minWidth: '300px',
+              maxWidth: '500px',
+              left: 'auto',
+              right: 'auto'
+            }}
+          >
+            <div className="card shadow-lg">
+              {/* Barra de búsqueda dentro del dropdown */}
+              <div className="card-header bg-success text-white p-2">
+                <div className="input-group input-group-sm">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar proveedores por nombre o RUT..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
+                  />
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
                 </div>
-              ) : (
-                filteredSuppliers.map(supplier => (
+              </div>
+
+              <div className="list-group list-group-flush" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {/* Proveedores encontrados */}
+                {filteredSuppliers.map(supplier => (
                   <button
                     key={supplier._id}
                     type="button"
@@ -170,24 +255,93 @@ const SupplierSearchSelector: React.FC<SupplierSearchProps> = ({ suppliers, valu
                       </span>
                     </div>
                   </button>
-                ))
-              )}
+                ))}
+
+                {/* Clientes que podrían ser agregados como proveedores */}
+                {searchTerm && potentialClients.length > 0 && (
+                  <>
+                    <div className="list-group-item bg-light text-muted small">
+                      <i className="bi bi-info-circle me-1"></i>
+                      Contactos existentes como clientes:
+                    </div>
+                    {potentialClients.map(client => (
+                      <div key={`client-${client._id}`} className="list-group-item bg-light">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong>{client.name}</strong> - <small className="text-muted">{client.rut}</small>
+                            <br />
+                            <small className="text-muted">
+                              <i className="bi bi-people me-1"></i>
+                              Existe como cliente
+                            </small>
+                          </div>
+                          <button
+                            className="btn btn-outline-success btn-sm"
+                            onClick={() => handleAddSupplierRole(client)}
+                            disabled={addingRole}
+                          >
+                            {addingRole ? (
+                              <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            ) : (
+                              <i className="bi bi-arrow-up-right-circle me-1"></i>
+                            )}
+                            Agregar como proveedor
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* Opción para crear nuevo proveedor */}
+                {filteredSuppliers.length === 0 && potentialClients.length === 0 && searchTerm && (
+                  <div className="list-group-item text-center py-3">
+                    <i className="bi bi-search me-2 text-muted"></i>
+                    <div className="text-muted mb-2">No se encontraron proveedores</div>
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={handleCreateNewSupplier}
+                    >
+                      <i className="bi bi-plus-circle me-1"></i>
+                      Crear nuevo proveedor
+                    </button>
+                  </div>
+                )}
+
+                {/* Mensaje cuando no hay término de búsqueda */}
+                {!searchTerm && filteredSuppliers.length === 0 && (
+                  <div className="list-group-item text-center text-muted py-3">
+                    <i className="bi bi-search me-2"></i>
+                    Escribe para buscar proveedores
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Overlay para cerrar el dropdown */}
-      {isOpen && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 1059 }}
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+        {/* Overlay para cerrar el dropdown */}
+        {isOpen && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{ zIndex: 1069 }}
+            onClick={() => setIsOpen(false)}
+          />
+        )}
 
-      {error && <div className="invalid-feedback">{error}</div>}
-    </div>
+        {error && <div className="invalid-feedback">{error}</div>}
+      </div>
+
+      {/* SupplierModal para crear nuevo proveedor */}
+      <SupplierModal
+        isOpen={showSupplierModal}
+        modalType="create"
+        selectedSupplier={null}
+        loading={supplierModalLoading}
+        onClose={() => setShowSupplierModal(false)}
+        onSubmit={handleSupplierModalSubmit}
+      />
+    </>
   );
 };
 
@@ -196,6 +350,9 @@ interface ConsumableSearchProps {
   consumables: Consumable[];
   value: string;
   onChange: (value: string) => void;
+  onConsumableCreated?: (consumable: Consumable) => void;
+  onConsumableSelected?: (consumableId: string, consumable: Consumable) => void;
+  onClear?: () => void;
   disabled?: boolean;
   error?: string;
 }
@@ -204,11 +361,24 @@ const ConsumableSearchSelector: React.FC<ConsumableSearchProps> = ({
   consumables,
   value,
   onChange,
+  onConsumableCreated,
+  onConsumableSelected,
+  onClear,
   disabled,
   error
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+
+  // Estados para modal de crear insumo
+  const [showConsumableModal, setShowConsumableModal] = useState(false);
+  const [creatingConsumable, setCreatingConsumable] = useState(false);
+  const [consumableFormData, setConsumableFormData] = useState<CreateConsumableRequest>({
+    name: '',
+    description: '',
+    netPrice: 0,
+    stock: null
+  });
 
   const filteredConsumables = consumables.filter(consumable =>
     consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -218,15 +388,68 @@ const ConsumableSearchSelector: React.FC<ConsumableSearchProps> = ({
   const selectedConsumable = consumables.find(c => c._id === value);
 
   const handleSelect = (consumableId: string) => {
+    const consumable = consumables.find(c => c._id === consumableId);
     onChange(consumableId);
+    if (consumable && onConsumableSelected) {
+      onConsumableSelected(consumableId, consumable);
+    }
     setIsOpen(false);
     setSearchTerm('');
   };
 
   const handleClear = () => {
     onChange('');
+    if (onClear) {
+      onClear();
+    }
     setSearchTerm('');
     setIsOpen(false);
+  };
+
+  const handleCreateNewConsumable = () => {
+    setConsumableFormData({
+      name: searchTerm,
+      description: '',
+      netPrice: 0,
+      stock: null
+    });
+    setIsOpen(false);
+    setShowConsumableModal(true);
+  };
+
+  const handleCreateConsumable = async () => {
+    if (!consumableFormData.name || !consumableFormData.netPrice) return;
+
+    setCreatingConsumable(true);
+    try {
+      const response = await createConsumable(consumableFormData);
+      if (response.success) {
+        // Primero agregar a la lista
+        if (onConsumableCreated) {
+          onConsumableCreated(response.data);
+        }
+
+        // Luego seleccionarlo automáticamente
+        onChange(response.data._id);
+        if (onConsumableSelected) {
+          onConsumableSelected(response.data._id, response.data);
+        }
+
+        setShowConsumableModal(false);
+        setSearchTerm('');
+      }
+    } catch (error) {
+      console.error('Error creando insumo:', error);
+    } finally {
+      setCreatingConsumable(false);
+    }
+  };
+
+  const handleConsumableFormChange = (field: keyof CreateConsumableRequest, value: string | number | null) => {
+    setConsumableFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const formatConsumableDisplay = (consumable: Consumable) => {
@@ -246,107 +469,230 @@ const ConsumableSearchSelector: React.FC<ConsumableSearchProps> = ({
   };
 
   return (
-    <div className="position-relative">
-      <div className="input-group">
-        <input
-          type="text"
-          className={`form-control ${error ? 'is-invalid' : ''}`}
-          placeholder="Buscar insumo..."
-          value={selectedConsumable ? formatConsumableDisplay(selectedConsumable) : searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-          disabled={disabled}
-        />
-        {value && (
+    <>
+      <div className="position-relative">
+        <div className="input-group">
+          <input
+            type="text"
+            className={`form-control ${error ? 'is-invalid' : ''}`}
+            placeholder="Buscar insumo..."
+            value={selectedConsumable ? formatConsumableDisplay(selectedConsumable) : searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            disabled={disabled}
+          />
+          {value && (
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={handleClear}
+              disabled={disabled}
+              title="Limpiar selección"
+            >
+              <i className="bi bi-x"></i>
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-outline-secondary"
-            onClick={handleClear}
+            onClick={() => setIsOpen(!isOpen)}
             disabled={disabled}
-            title="Limpiar selección"
           >
-            <i className="bi bi-x"></i>
+            <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
           </button>
-        )}
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={() => setIsOpen(!isOpen)}
-          disabled={disabled}
-        >
-          <i className={`bi ${isOpen ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
-        </button>
-      </div>
+        </div>
 
-      {isOpen && (
-        <div
-          className="position-fixed mt-1 bg-white"
-          style={{
-            zIndex: 1060,
-            minWidth: '400px',
-            maxWidth: '600px',
-            left: 'auto',
-            right: 'auto'
-          }}
-        >
-          <div className="card shadow-lg">
-            {/* Barra de búsqueda dentro del dropdown */}
-            <div className="card-header bg-success text-white p-2">
-              <div className="input-group input-group-sm">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Buscar insumos por nombre o descripción..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus
-                />
-                <span className="input-group-text">
-                  <i className="bi bi-search"></i>
-                </span>
+        {isOpen && (
+          <div
+            className="position-fixed mt-1 bg-white"
+            style={{
+              zIndex: 1070,
+              minWidth: '400px',
+              maxWidth: '600px',
+              left: 'auto',
+              right: 'auto'
+            }}
+          >
+            <div className="card shadow-lg">
+              {/* Barra de búsqueda dentro del dropdown */}
+              <div className="card-header bg-success text-white p-2">
+                <div className="input-group input-group-sm">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar insumos por nombre o descripción..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
+                  />
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
+                </div>
+              </div>
+
+              <div className="list-group list-group-flush" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                {filteredConsumables.length === 0 ? (
+                  <div className="list-group-item text-center py-3">
+                    <div className="text-muted mb-3">
+                      <i className="bi bi-search me-2"></i>
+                      No se encontraron insumos
+                    </div>
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        className="btn btn-success btn-sm"
+                        onClick={handleCreateNewConsumable}
+                        disabled={disabled}
+                      >
+                        <i className="bi bi-plus-circle me-2"></i>
+                        Crear nuevo insumo
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  filteredConsumables.map(consumable => (
+                    <button
+                      key={consumable._id}
+                      type="button"
+                      className={`list-group-item list-group-item-action ${value === consumable._id ? 'active' : ''}`}
+                      onClick={() => handleSelect(consumable._id)}
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>{formatConsumableDisplayJSX(consumable)}</div>
+                        <small className="text-muted">${consumable.netPrice}</small>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="list-group list-group-flush" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-              {filteredConsumables.length === 0 ? (
-                <div className="list-group-item text-center text-muted py-3">
-                  <i className="bi bi-search me-2"></i>
-                  No se encontraron insumos
-                </div>
-              ) : (
-                filteredConsumables.map(consumable => (
+        {/* Overlay para cerrar el dropdown */}
+        {isOpen && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{ zIndex: 1069 }}
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
+        {error && <div className="invalid-feedback">{error}</div>}
+      </div>
+
+      {/* Modal de crear insumo */}
+      {showConsumableModal && (
+        <PortalModal isOpen={true} onClose={() => setShowConsumableModal(false)}>
+          {/* Backdrop */}
+          <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1080 }}
+            onClick={() => setShowConsumableModal(false)}
+          />
+
+          {/* Modal */}
+          <div
+            className="modal fade show"
+            style={{
+              display: 'block',
+              zIndex: 1085
+            }}
+            tabIndex={-1}
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Nuevo Insumo</h5>
                   <button
-                    key={consumable._id}
                     type="button"
-                    className={`list-group-item list-group-item-action ${value === consumable._id ? 'active' : ''}`}
-                    onClick={() => handleSelect(consumable._id)}
+                    className="btn-close"
+                    onClick={() => setShowConsumableModal(false)}
+                    disabled={creatingConsumable}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Nombre <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={consumableFormData.name}
+                      onChange={(e) => handleConsumableFormChange('name', e.target.value)}
+                      placeholder="Ej: Filtros de jeringa"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Descripción</label>
+                    <textarea
+                      className="form-control"
+                      value={consumableFormData.description}
+                      onChange={(e) => handleConsumableFormChange('description', e.target.value)}
+                      placeholder="Ej: Filtros estériles de 0.22 micras"
+                      rows={3}
+                    ></textarea>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Precio neto <span style={{ color: '#dc3545' }}>*</span></label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={consumableFormData.netPrice}
+                      onChange={(e) => handleConsumableFormChange('netPrice', Number(e.target.value))}
+                      placeholder="Ej: 2500"
+                      min="0"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Stock</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={consumableFormData.stock || ''}
+                      onChange={(e) => handleConsumableFormChange('stock', e.target.value ? Number(e.target.value) : null)}
+                      placeholder="Ej: 30"
+                      min="0"
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowConsumableModal(false)}
+                    disabled={creatingConsumable}
                   >
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>{formatConsumableDisplayJSX(consumable)}</div>
-                      <small className="text-muted">${consumable.netPrice}</small>
-                    </div>
+                    Cancelar
                   </button>
-                ))
-              )}
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    onClick={handleCreateConsumable}
+                    disabled={creatingConsumable || !consumableFormData.name || !consumableFormData.netPrice}
+                  >
+                    {creatingConsumable ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Creando...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle me-2"></i>
+                        Crear insumo
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </PortalModal>
       )}
-
-      {/* Overlay para cerrar el dropdown */}
-      {isOpen && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 1059 }}
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {error && <div className="invalid-feedback">{error}</div>}
-    </div>
+    </>
   );
 };
 
@@ -359,6 +705,7 @@ export default function PurchaseFormModal({
 }: PurchaseFormModalProps) {
   // Estados para datos maestros
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [consumables, setConsumables] = useState<Consumable[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(true);
 
@@ -390,12 +737,14 @@ export default function PurchaseFormModal({
   const loadInitialData = async () => {
     setLoadingData(true);
     try {
-      const [suppliersResponse, consumablesResponse] = await Promise.all([
+      const [suppliersResponse, clientsResponse, consumablesResponse] = await Promise.all([
         getSuppliers(),
+        getClients(),
         getConsumables()
       ]);
 
       setSuppliers(suppliersResponse.data);
+      setClients(clientsResponse.data);
       setConsumables(consumablesResponse.data);
     } catch (error) {
       console.error('Error cargando datos iniciales:', error);
@@ -425,12 +774,28 @@ export default function PurchaseFormModal({
     });
   };
 
-  // Calcular preview en tiempo real
+  // Función para calcular preview en tiempo real
   const calculatePreview = async () => {
-    if (formData.items.length === 0 || !formData.documentType) return;
+    if (formData.items.length === 0 || !formData.documentType) {
+      // Si no hay items, limpiar totales
+      setPreviewData({
+        netAmount: 0,
+        taxAmount: 0,
+        totalAmount: 0
+      });
+      return;
+    }
 
     const validItems = formData.items.filter(item => item.item && item.quantity > 0);
-    if (validItems.length === 0) return;
+    if (validItems.length === 0) {
+      // Si no hay items válidos, limpiar totales
+      setPreviewData({
+        netAmount: 0,
+        taxAmount: 0,
+        totalAmount: 0
+      });
+      return;
+    }
 
     setLoadingPreview(true);
     try {
@@ -446,14 +811,11 @@ export default function PurchaseFormModal({
       };
 
       const response = await previewPurchase(previewRequest);
-
-      if (response.success) {
-        setPreviewData({
-          netAmount: response.data.netAmount,
-          taxAmount: response.data.taxAmount,
-          totalAmount: response.data.totalAmount
-        });
-      }
+      setPreviewData({
+        netAmount: response.data.netAmount,
+        taxAmount: response.data.taxAmount,
+        totalAmount: response.data.totalAmount
+      });
     } catch (error) {
       console.error('Error calculando preview:', error);
       setPreviewData(null);
@@ -520,20 +882,61 @@ export default function PurchaseFormModal({
       ...prev,
       items: prev.items.filter((_, i) => i !== index)
     }));
+
+    // Limpiar los inputValues para ese índice y reorganizar los demás
+    setInputValues(prev => {
+      const newInputValues = { ...prev };
+
+      // Eliminar los valores del índice actual
+      delete newInputValues[`quantity_${index}`];
+      delete newInputValues[`unitPrice_${index}`];
+      delete newInputValues[`discount_${index}`];
+
+      // Reorganizar los índices superiores (moverlos hacia abajo)
+      Object.keys(newInputValues).forEach(key => {
+        const match = key.match(/^(quantity|unitPrice|discount)_(\d+)$/);
+        if (match) {
+          const field = match[1];
+          const currentIndex = parseInt(match[2]);
+          if (currentIndex > index) {
+            const newKey = `${field}_${currentIndex - 1}`;
+            newInputValues[newKey] = newInputValues[key];
+            delete newInputValues[key];
+          }
+        }
+      });
+
+      return newInputValues;
+    });
   };
 
   // Manejar actualización de item
-  const updateItem = (index: number, field: keyof PurchaseItemForm, value: string | number) => {
+  const updateItem = (index: number, field: keyof PurchaseItemForm, value: string | number, consumableData?: Consumable) => {
     setFormData(prev => {
       const newItems = [...prev.items];
       newItems[index] = { ...newItems[index], [field]: value };
 
       // Si se cambia el item, buscar su nombre y precio
-      if (field === 'item' && value) {
-        const selectedConsumable = consumables.find(c => c._id === value);
-        if (selectedConsumable) {
-          newItems[index].itemName = selectedConsumable.name;
-          newItems[index].unitPrice = selectedConsumable.netPrice || 0;
+      if (field === 'item') {
+        if (value) {
+          // Si se selecciona un insumo
+          // Usar consumableData si se proporciona, sino buscar en la lista
+          const selectedConsumable = consumableData || consumables.find(c => c._id === value);
+          if (selectedConsumable) {
+            newItems[index].itemName = selectedConsumable.name;
+            newItems[index].unitPrice = selectedConsumable.netPrice || 0;
+            // Si no hay cantidad, poner 1 por defecto
+            if (!newItems[index].quantity || newItems[index].quantity === 0) {
+              newItems[index].quantity = 1;
+            }
+          }
+        } else {
+          // Si se limpia el insumo, limpiar todos los valores
+          newItems[index].itemName = '';
+          newItems[index].unitPrice = 0;
+          newItems[index].quantity = 0;
+          newItems[index].discount = 0;
+          newItems[index].subtotal = 0;
         }
       }
 
@@ -546,6 +949,17 @@ export default function PurchaseFormModal({
 
       return { ...prev, items: newItems };
     });
+
+    // Si se limpia el insumo, también limpiar los inputValues
+    if (field === 'item' && !value) {
+      setInputValues(prev => {
+        const newInputValues = { ...prev };
+        delete newInputValues[`quantity_${index}`];
+        delete newInputValues[`unitPrice_${index}`];
+        delete newInputValues[`discount_${index}`];
+        return newInputValues;
+      });
+    }
 
     // Limpiar errores específicos cuando se corrige el campo
     setErrors(prevErrors => {
@@ -734,6 +1148,15 @@ export default function PurchaseFormModal({
     e.preventDefault();
   };
 
+  // Manejar cuando se crea un nuevo proveedor
+  const handleSupplierCreated = (newSupplier: Supplier) => {
+    setSuppliers(prev => [...prev, newSupplier]);
+  };
+
+  const handleConsumableCreated = (newConsumable: Consumable) => {
+    setConsumables(prev => [...prev, newConsumable]);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -785,10 +1208,12 @@ export default function PurchaseFormModal({
                         <label htmlFor="counterparty" className="form-label">Proveedor *</label>
                         <SupplierSearchSelector
                           suppliers={suppliers}
+                          clients={clients}
                           value={formData.counterparty}
                           onChange={(value) => setFormData(prev => ({ ...prev, counterparty: value }))}
                           disabled={loading}
                           error={errors.counterparty}
+                          onSupplierCreated={handleSupplierCreated}
                         />
                       </div>
 
@@ -884,6 +1309,9 @@ export default function PurchaseFormModal({
                                       consumables={consumables}
                                       value={item.item}
                                       onChange={(value) => updateItem(index, 'item', value)}
+                                      onConsumableCreated={handleConsumableCreated}
+                                      onConsumableSelected={(consumableId, consumable) => updateItem(index, 'item', consumableId, consumable)}
+                                      onClear={() => updateItem(index, 'item', '')}
                                       disabled={loading}
                                       error={errors[`item_${index}_item`]}
                                     />

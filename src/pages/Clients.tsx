@@ -108,11 +108,15 @@ export default function Clients() {
         await deleteClient(selectedClient._id);
       }
 
-      // Recargar la lista después de la operación
-      if (searchTerm.trim()) {
-        handleSearchChange(searchTerm);
-      } else {
-        loadClients();
+      // Siempre recargar la lista desde el servidor primero
+      await loadClients();
+
+      // Si había un filtro aplicado, limpiar después del borrado para mostrar que se eliminó
+      if (modalType === 'delete' && searchTerm.trim()) {
+        setSearchTerm('');
+      } else if (searchTerm.trim()) {
+        // Para create y edit, mantener el filtro aplicado
+        filterClients(searchTerm);
       }
 
       closeModal();

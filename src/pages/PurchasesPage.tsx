@@ -147,9 +147,30 @@ export default function PurchasesPage() {
     if (!selectedPurchase) return;
 
     setLoading(true);
+
+    // Verificar si hay filtros activos (excluyendo paginación y orden)
+    const hasActiveFilters = Boolean(
+      filters.status ||
+      filters.startDate ||
+      filters.endDate
+    );
+
     try {
       await deletePurchase(selectedPurchase._id);
-      loadPurchases(); // Recargar la lista
+
+      // Si hay filtros activos, limpiarlos para mostrar que el elemento fue eliminado
+      if (hasActiveFilters) {
+        setFilters({
+          page: 1,
+          limit: 20,
+          sortField: 'documentNumber',
+          sortDirection: 'desc'
+        });
+      } else {
+        // Si no hay filtros, solo recargar los datos
+        loadPurchases();
+      }
+
       setShowDeleteModal(false);
     } catch (err) {
       console.error('Error al eliminar compra:', err);
